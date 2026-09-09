@@ -13,7 +13,7 @@ class TestCLI(unittest.TestCase):
         try:
             exit_code = main(["version"])
             self.assertEqual(exit_code, 0)
-            self.assertIn("Sikhar v0.1.0", captured.getvalue())
+            self.assertIn("Sikhar v0.2.0", captured.getvalue())
         finally:
             sys.stdout = old_stdout
 

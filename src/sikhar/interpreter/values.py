@@ -86,6 +86,36 @@ class BuiltinFunction(SikharCallable):
         return f"<built-in kaam {self._name}>"
 
 
+class SikharModule:
+    """A module containing exported functions, variables, and constants."""
+    def __init__(self, name: str, exports: dict[str, Any]):
+        self.name = name
+        self.exports = exports
+
+    def get_member(self, member_name: str, line: int = 1, col: int = 1, filename: str = "<stdin>") -> Any:
+        if member_name in self.exports:
+            return self.exports[member_name]
+        from ..errors.error_types import SikharNameError
+        raise SikharNameError(
+            f"Module '{self.name}' has no member named '{member_name}'",
+            filename=filename,
+            line=line,
+            column=col,
+        )
+
+    def set_member(self, member_name: str, val: Any) -> None:
+        self.exports[member_name] = val
+
+    def __getitem__(self, key: str) -> Any:
+        return self.exports[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.exports
+
+    def __repr__(self) -> str:
+        return f"<module '{self.name}'>"
+
+
 def is_truthy(val: Any) -> bool:
     """Determine truthiness in Sikhar."""
     if val is None:
@@ -124,5 +154,7 @@ def sikhar_stringify(val: Any, in_collection: bool = False) -> str:
         pairs = [f'{sikhar_stringify(k, in_collection=True)}: {sikhar_stringify(v, in_collection=True)}' for k, v in val.items()]
         return "{" + ", ".join(pairs) + "}"
     if isinstance(val, SikharCallable):
+        return repr(val)
+    if isinstance(val, SikharModule):
         return repr(val)
     return str(val)

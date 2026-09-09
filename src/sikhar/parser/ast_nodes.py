@@ -67,6 +67,18 @@ class IndexExpression(Expression):
     index: Expression = field(default_factory=Expression)
 
 
+@dataclass
+class MemberExpression(Expression):
+    target: Expression = field(default_factory=Expression)
+    property_name: str = ""
+
+
+@dataclass
+class ImportExpression(Expression):
+    module_path: str = ""
+    is_std: bool = False
+
+
 # ==========================================
 # Statements
 # ==========================================
@@ -168,3 +180,15 @@ class ThrowStatement(Statement):
 @dataclass
 class ExpressionStatement(Statement):
     expression: Expression = field(default_factory=Expression)
+
+
+@dataclass
+class ExportStatement(Statement):
+    declaration: Optional[Statement] = None
+    symbol_name: Optional[str] = None
+
+
+@dataclass
+class AssertStatement(Statement):
+    condition: Expression = field(default_factory=Expression)
+    message: Optional[Expression] = None

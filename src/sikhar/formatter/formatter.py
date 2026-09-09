@@ -32,6 +32,10 @@ from ..parser.ast_nodes import (
     ListLiteral,
     MapLiteral,
     IndexExpression,
+    MemberExpression,
+    ImportExpression,
+    ExportStatement,
+    AssertStatement,
 )
 from ..lexer.lexer import Lexer
 from ..parser.parser import Parser
@@ -152,6 +156,21 @@ class Formatter:
         elif isinstance(stmt, ThrowStatement):
             return f"{indent}fal {self._format_expression(stmt.expression)}"
 
+        elif isinstance(stmt, ExportStatement):
+            if stmt.declaration:
+                decl_str = self._format_statement(stmt.declaration, level)
+                return f"{indent}pathaau {decl_str.lstrip()}"
+            elif stmt.symbol_name:
+                return f"{indent}pathaau {stmt.symbol_name}"
+            return f"{indent}pathaau"
+
+        elif isinstance(stmt, AssertStatement):
+            cond_str = self._format_expression(stmt.condition)
+            if stmt.message is not None:
+                msg_str = self._format_expression(stmt.message)
+                return f"{indent}jaach {cond_str}, {msg_str}"
+            return f"{indent}jaach {cond_str}"
+
         elif isinstance(stmt, ExpressionStatement):
             return f"{indent}{self._format_expression(stmt.expression)}"
 
@@ -208,5 +227,14 @@ class Formatter:
             target_str = self._format_expression(expr.target)
             idx_str = self._format_expression(expr.index)
             return f"{target_str}[{idx_str}]"
+
+        elif isinstance(expr, MemberExpression):
+            target_str = self._format_expression(expr.target)
+            return f"{target_str}.{expr.property_name}"
+
+        elif isinstance(expr, ImportExpression):
+            if expr.is_std or not expr.module_path.startswith((".", "/")):
+                return f"aayaat {expr.module_path}"
+            return f'aayaat "{expr.module_path}"'
 
         return str(expr)

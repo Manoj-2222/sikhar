@@ -80,6 +80,13 @@ class SikharDivisionByZeroError(SikharRuntimeError):
     pass
 
 
+class SikharAssertionError(SikharRuntimeError):
+    """Raised when an assertion 'jaach' fails."""
+    @property
+    def error_type_name(self) -> str:
+        return "AssertionError"
+
+
 class SikharUserThrowError(SikharRuntimeError):
     """Raised explicitly by the user using 'fal'."""
     def __init__(

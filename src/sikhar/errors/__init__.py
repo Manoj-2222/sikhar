@@ -9,6 +9,7 @@ from .error_types import (
     SikharIndexError,
     SikharKeyError,
     SikharDivisionByZeroError,
+    SikharAssertionError,
     SikharUserThrowError,
 )
 from .reporter import format_error, print_error

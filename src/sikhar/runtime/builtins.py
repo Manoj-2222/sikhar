@@ -107,6 +107,62 @@ def register_builtins(global_env: Any, output_fn: Any = print, input_fn: Any = i
             raise SikharTypeError("Argument to 'ghat' must be a number", filename=interpreter.filename, line=line, column=col)
         return abs(args[0])
 
+    def _builtin_khola(interpreter: Any, args: List[Any], line: int, col: int) -> Any:
+        if len(args) < 1:
+            raise SikharTypeError("khola expects at least 1 argument (path)", filename=interpreter.filename, line=line, column=col)
+        path = str(args[0])
+        mode_str = str(args[1]) if len(args) > 1 else "r"
+        mode_map = {
+            "padh": "r",
+            "lekh": "w",
+            "thap": "a",
+            "r": "r",
+            "w": "w",
+            "a": "a",
+            "rb": "rb",
+            "wb": "wb",
+        }
+        mode = mode_map.get(mode_str, mode_str)
+        try:
+            return open(path, mode, encoding="utf-8" if "b" not in mode else None)
+        except Exception as e:
+            from ..errors.error_types import SikharRuntimeError
+            raise SikharRuntimeError(f"Error opening file '{path}': {e}", filename=interpreter.filename, line=line, column=col)
+
+    def _builtin_banda(interpreter: Any, args: List[Any], line: int, col: int) -> None:
+        if len(args) != 1:
+            raise SikharTypeError("banda expects 1 argument (file_handle)", filename=interpreter.filename, line=line, column=col)
+        handle = args[0]
+        if hasattr(handle, "close"):
+            handle.close()
+        return None
+
+    def _builtin_padh(interpreter: Any, args: List[Any], line: int, col: int) -> str:
+        if len(args) != 1:
+            raise SikharTypeError("padh expects 1 argument (path or file_handle)", filename=interpreter.filename, line=line, column=col)
+        target = args[0]
+        if hasattr(target, "read"):
+            return target.read()
+        from pathlib import Path
+        p = Path(str(target))
+        if not p.exists():
+            from ..errors.error_types import SikharRuntimeError
+            raise SikharRuntimeError(f"File not found: '{p}'", filename=interpreter.filename, line=line, column=col)
+        return p.read_text(encoding="utf-8")
+
+    def _builtin_lekh(interpreter: Any, args: List[Any], line: int, col: int) -> int:
+        if len(args) != 2:
+            raise SikharTypeError("lekh expects 2 arguments: (path_or_file, content)", filename=interpreter.filename, line=line, column=col)
+        target, content = args[0], args[1]
+        content_str = str(content)
+        if hasattr(target, "write"):
+            return target.write(content_str)
+        from pathlib import Path
+        p = Path(str(target))
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content_str, encoding="utf-8")
+        return len(content_str)
+
     builtins_map = {
         "dekha": BuiltinFunction("dekha", _builtin_dekha, arity=None),
         "sodha": BuiltinFunction("sodha", _builtin_sodha, arity=None),
@@ -119,7 +175,12 @@ def register_builtins(global_env: Any, output_fn: Any = print, input_fn: Any = i
         "thulo": BuiltinFunction("thulo", _builtin_thulo, arity=None),
         "sano": BuiltinFunction("sano", _builtin_sano, arity=None),
         "ghat": BuiltinFunction("ghat", _builtin_ghat, arity=1),
+        "khola": BuiltinFunction("khola", _builtin_khola, arity=None),
+        "banda": BuiltinFunction("banda", _builtin_banda, arity=1),
+        "padh": BuiltinFunction("padh", _builtin_padh, arity=1),
+        "lekh": BuiltinFunction("lekh", _builtin_lekh, arity=2),
     }
 
     for name, fn in builtins_map.items():
+        fn._is_builtin = True
         global_env.define(name, fn)

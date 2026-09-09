@@ -151,10 +151,6 @@ KEYWORDS = {
     "gopya": TokenType.GOPYA,
     "parkha": TokenType.PARKHA,
     "sangai": TokenType.SANGAI,
-    "khola": TokenType.KHOLA,
-    "banda": TokenType.BANDA,
-    "padh": TokenType.PADH,
-    "lekh": TokenType.LEKH,
     "hatau": TokenType.HATAU,
     "hatāu": TokenType.HATAU,
     "khoj": TokenType.KHOJ,
@@ -165,8 +161,6 @@ KEYWORDS = {
 }
 
 RESERVED_FUTURE_KEYWORDS = {
-    TokenType.AAYAAT: "Modules (aayaat) are planned for v0.2.0.",
-    TokenType.PATHAAU: "Modules (pathaau) are planned for v0.2.0.",
     TokenType.VARG: "Classes (varg) are reserved for future OOP support.",
     TokenType.NIRMAAN: "Constructors (nirmaan) are reserved for future OOP support.",
     TokenType.GUN: "Properties (gun) are reserved for future OOP support.",
@@ -175,14 +169,9 @@ RESERVED_FUTURE_KEYWORDS = {
     TokenType.GOPYA: "Access modifier (gopya) is reserved for future versions.",
     TokenType.PARKHA: "Async/await (parkha) is reserved for future versions.",
     TokenType.SANGAI: "Async/await (sangai) is reserved for future versions.",
-    TokenType.KHOLA: "File open (khola) is reserved for future standard library.",
-    TokenType.BANDA: "File close (banda) is reserved for future standard library.",
-    TokenType.PADH: "File read (padh) is reserved for future standard library.",
-    TokenType.LEKH: "File write (lekh) is reserved for future standard library.",
     TokenType.HATAU: "Collection remove (hatau) is reserved for future syntax.",
     TokenType.KHOJ: "Collection search (khoj) is reserved for future syntax.",
     TokenType.PRAKAAR: "Explicit type checking (prakaar) is reserved for future versions.",
-    TokenType.JAACH: "Assertions (jaach) are reserved for future testing framework.",
     TokenType.SURUWAT: "Entry point (suruwat) is reserved for future versions.",
     TokenType.SAMAPTA: "Program termination (samapta) is reserved for future versions.",
 }

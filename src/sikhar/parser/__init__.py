@@ -27,6 +27,10 @@ from .ast_nodes import (
     ListLiteral,
     MapLiteral,
     IndexExpression,
+    MemberExpression,
+    ImportExpression,
+    ExportStatement,
+    AssertStatement,
 )
 from .parser import Parser
 
@@ -50,6 +54,8 @@ __all__ = [
     "TryStatement",
     "ThrowStatement",
     "ExpressionStatement",
+    "ExportStatement",
+    "AssertStatement",
     "Literal",
     "Identifier",
     "BinaryExpression",
@@ -58,5 +64,7 @@ __all__ = [
     "ListLiteral",
     "MapLiteral",
     "IndexExpression",
+    "MemberExpression",
+    "ImportExpression",
     "Parser",
 ]

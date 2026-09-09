@@ -74,9 +74,9 @@ class Lexer:
                 tokens.append(self._lex_number(start_line, start_col))
                 continue
 
-            # Strings
-            if ch == '"':
-                tokens.append(self._lex_string(start_line, start_col))
+            # Strings (double or single quotes)
+            if ch in ('"', "'"):
+                tokens.append(self._lex_string(start_line, start_col, quote_char=ch))
                 continue
 
             # Identifiers and keywords
@@ -168,11 +168,11 @@ class Lexer:
             return Token(TokenType.DECIMAL, float(num_str), start_line, start_col, length, self.filename)
         return Token(TokenType.NUMBER, int(num_str), start_line, start_col, length, self.filename)
 
-    def _lex_string(self, start_line: int, start_col: int) -> Token:
-        self._advance()  # Skip opening quote "
+    def _lex_string(self, start_line: int, start_col: int, quote_char: str = '"') -> Token:
+        self._advance()  # Skip opening quote
         chars = []
 
-        while self._peek() is not None and self._peek() != '"':
+        while self._peek() is not None and self._peek() != quote_char:
             ch = self._advance()
             if ch == '\\':
                 escape_ch = self._advance()
@@ -184,10 +184,12 @@ class Lexer:
                     chars.append('\t')
                 elif escape_ch == 'r':
                     chars.append('\r')
-                elif escape_ch == '"':
-                    chars.append('"')
+                elif escape_ch == quote_char:
+                    chars.append(quote_char)
                 elif escape_ch == '\\':
                     chars.append('\\')
+                elif escape_ch in ('{', '}'):
+                    chars.append('\0' + escape_ch)
                 else:
                     chars.append(escape_ch)
             elif ch == '\n':
@@ -203,7 +205,7 @@ class Lexer:
             else:
                 chars.append(ch)
 
-        if self._peek() != '"':
+        if self._peek() != quote_char:
             line_content = self.source.splitlines()[start_line - 1] if self.source.splitlines() else ""
             raise SikharSyntaxError(
                 "Unterminated string literal at end of input",
@@ -213,7 +215,7 @@ class Lexer:
                 source_line=line_content,
             )
 
-        self._advance()  # Skip closing quote "
+        self._advance()  # Skip closing quote
         str_val = "".join(chars)
         # Length including quotes
         length = len(str_val) + 2

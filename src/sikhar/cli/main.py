@@ -174,10 +174,27 @@ def run_tests() -> int:
     if not Path(start_dir).exists():
         print("No 'tests' directory found.")
         return 1
+
+    print("=== Running Sikhar Python Test Suite ===")
     suite = loader.discover(start_dir, pattern="test_*.py")
     runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
-    return 0 if result.wasSuccessful() else 1
+    py_result = runner.run(suite)
+
+    # Discover and run .sk test files
+    sk_tests = list(Path(start_dir).glob("**/*.sk"))
+    sk_success = True
+    if sk_tests:
+        print("\n=== Running Native Sikhar (.sk) Test Suite ===")
+        for sk_file in sk_tests:
+            print(f"Testing {sk_file} ... ", end="")
+            code = run_file(str(sk_file))
+            if code == 0:
+                print("PASSED")
+            else:
+                print("FAILED")
+                sk_success = False
+
+    return 0 if py_result.wasSuccessful() and sk_success else 1
 
 
 def repl() -> int:

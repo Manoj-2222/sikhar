@@ -4,7 +4,7 @@ Sikhar follows an incremental, deliberate release roadmap.
 
 ---
 
-## v0.1.0 — Current Release (Core Language Foundation)
+## v0.1.0 — Initial Release (Core Language Foundation)
 
 * [x] Lexer with full Nepali-inspired keywords & Unicode support
 * [x] Parser producing structured, typed AST
@@ -23,14 +23,14 @@ Sikhar follows an incremental, deliberate release roadmap.
 
 ---
 
-## v0.2.0 — Modules & Standard Library
+## v0.2.0 — Current Release (Modules & Standard Library)
 
-* [ ] Module imports and exports (`aayaat`, `pathaau`)
-* [ ] Structured Standard Library namespaces (`std.io`, `std.math`, `std.file`, `std.time`)
-* [ ] File operations (`khola`, `banda`, `padh`, `lekh`)
-* [ ] Static type checker using explicit type annotations (`rakha x: number = 10`)
-* [ ] Native string interpolation (`dekha "Hello, {name}"`)
-* [ ] In-language test runner syntax (`jaach`)
+* [x] Module imports and exports (`aayaat`, `pathaau`) with file isolation & caching
+* [x] Structured Standard Library namespaces (`std.math`, `std.text`, `std.list`, `std.map`, `std.time`, `std.file`, `std.system`)
+* [x] File I/O operations and builtins (`khola`, `banda`, `padh`, `lekh`)
+* [x] Native string interpolation (`dekha "Hello, {name}"`) with brace escaping
+* [x] In-language test assertions (`jaach <condition> [, <message>]`)
+* [x] Dual-engine test runner (`sk test` running unit tests & native `.sk` tests)
 
 ---
 

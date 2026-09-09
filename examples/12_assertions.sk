@@ -1,0 +1,19 @@
+dekha "=== In-Language Assertions Demo ==="
+jaach 1 + 1 == 2
+jaach 10 > 5, "10 must be greater than 5"
+
+kaam jod(a, b) {
+    farka a + b
+}
+
+jaach jod(3, 4) == 7, "jod(3, 4) must equal 7"
+jaach jod(-1, 1) == 0, "jod(-1, 1) must equal 0"
+aayaat std.text
+rakha message = "Sikhar is fast"
+jaach text.starts_with(message, "Sikhar"), "Message should start with Sikhar"
+jaach text.contains(message, "fast"), "Message should contain 'fast'"
+aayaat std.list
+rakha nums = [10, 20, 30]
+jaach list.sum(nums) == 60, "Sum of [10, 20, 30] should be 60"
+jaach list.contains(nums, 20), "List should contain 20"
+dekha "All jaach assertions passed successfully!"

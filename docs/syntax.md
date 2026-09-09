@@ -67,3 +67,23 @@ rakha _private_key = "1234"
 | `koshish` | Try block |
 | `samata` | Catch block |
 | `fal` | Throw error |
+| `aayaat` | Import module or file |
+| `pathaau` | Export symbol from module |
+| `jaach` | In-language test assertion |
+
+## String Interpolation
+
+Strings enclosed in quotes support dynamic interpolation using `{expression}` syntax:
+
+```sk
+rakha naam = "Manoj"
+dekha "Namaste, {naam}!"
+dekha "Calculation: {10 * 20}"
+```
+
+To display curly braces literally without evaluating them, escape them using `\{` and `\}`:
+
+```sk
+dekha "Literal braces: \{not_evaluated\}"
+```
+

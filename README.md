@@ -10,9 +10,9 @@
  |____/|_|_|\_\_| |_|\__,_|_|    
 ```
 
-**Sikhar (`v0.1.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, and pinpoint diagnostics.
+**Sikhar (`v0.2.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, and pinpoint diagnostics.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/sikhar-lang/sikhar)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Manoj-2222/sikhar)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 
@@ -23,7 +23,7 @@
 ## 🏔️ Core Identity
 
 * **Language Name**: Sikhar
-* **Current Version**: v0.1.0
+* **Current Version**: v0.2.0
 * **Source Extension**: `.sk`
 * **CLI Command**: `sk`
 * **Execution Model**: Pure AST Tree-Walking Interpreter
@@ -210,6 +210,45 @@ koshish {
 }
 ```
 
+### 8. Modules & Standard Library: `aayaat`, `pathaau`
+
+Export public symbols from files with `pathaau`:
+```sk
+# math_utils.sk
+pathaau sthayi PI = 3.14159
+pathaau kaam barga(n) { farka n * n }
+```
+
+Import local files or standard modules with `aayaat`:
+```sk
+aayaat "math_utils.sk"
+aayaat std.math
+aayaat std.text
+
+dekha math_utils.barga(6)    # 36
+dekha math.sqrt(64)          # 8.0
+dekha text.thulo("sikhar")   # SIKHAR
+```
+
+### 9. String Interpolation
+
+Embed variables and expressions seamlessly in text:
+```sk
+rakha user = "Manoj"
+rakha score = 95
+dekha "Player {user} scored {score + 5} points!"
+# Literal braces can be escaped with \{ and \}
+dekha "Format: \{not_interpolated\}"
+```
+
+### 10. In-Language Assertions: `jaach`
+
+Write self-testing scripts and assertions natively:
+```sk
+jaach 10 + 20 == 30, "Math sanity check"
+jaach text.contains("hello world", "world")
+```
+
 ---
 
 ## 🛠️ CLI Commands (`sk`)
@@ -218,7 +257,7 @@ koshish {
 sk run <file.sk>       # Execute a Sikhar source file
 sk check <file.sk>     # Parse and validate syntax without execution
 sk format [file.sk]    # Deterministically format source code
-sk test                # Run the automated test suite
+sk test                # Run test suite (Python + Native .sk tests)
 sk init <project>      # Scaffold a new project
 sk repl                # Start interactive REPL
 sk version             # Display current version
@@ -235,30 +274,40 @@ sikhar/
 │   └── sikhar/
 │       ├── __init__.py
 │       ├── __main__.py
-│       ├── lexer/             # Character scanner & token definitions
+│       ├── lexer/             # Scanner, tokens & Unicode support
 │       │   ├── token_type.py
 │       │   ├── token.py
 │       │   └── lexer.py
 │       ├── parser/            # Recursive descent parser & AST
 │       │   ├── ast_nodes.py
 │       │   └── parser.py
-│       ├── interpreter/       # AST tree-walking interpreter & scopes
+│       ├── interpreter/       # AST interpreter, environments & values
 │       │   ├── environment.py
 │       │   ├── values.py
 │       │   └── interpreter.py
-│       ├── runtime/           # Built-in functions (dekha, sodha, lamba...)
-│       │   └── builtins.py
-│       ├── errors/            # Native Sikhar diagnostics & formatting
+│       ├── runtime/           # Builtins & ModuleLoader
+│       │   ├── builtins.py
+│       │   └── module_loader.py
+│       ├── std/               # Standard Library
+│       │   ├── __init__.py
+│       │   ├── math.py        # std.math
+│       │   ├── text.py        # std.text
+│       │   ├── list.py        # std.list
+│       │   ├── map.py         # std.map
+│       │   ├── time.py        # std.time
+│       │   ├── file.py        # std.file
+│       │   └── system.py      # std.system
+│       ├── errors/            # Native diagnostics & formatting
 │       │   ├── error_types.py
 │       │   └── reporter.py
-│       ├── formatter/         # Canonical deterministic AST formatter
+│       ├── formatter/         # Canonical AST formatter
 │       │   └── formatter.py
 │       └── cli/               # CLI commands and REPL
 │           └── main.py
 ├── bin/
 │   ├── sk.bat                 # Windows CLI launcher
 │   └── sk                     # POSIX shell launcher
-├── tests/                     # Automated unit test suite (49 tests)
+├── tests/                     # Test suite (Python + Native .sk)
 │   ├── test_lexer.py
 │   ├── test_parser.py
 │   ├── test_interpreter.py
@@ -266,8 +315,13 @@ sikhar/
 │   ├── test_collections.py
 │   ├── test_errors.py
 │   ├── test_formatter.py
-│   └── test_cli.py
-├── examples/                  # 8 runnable demonstration scripts
+│   ├── test_cli.py
+│   ├── test_modules.py
+│   ├── test_stdlib.py
+│   ├── test_interpolation.py
+│   ├── test_assert.py
+│   └── test_v020_features.sk  # Native .sk test suite
+├── examples/                  # 13 runnable example scripts
 │   ├── 01_hello.sk
 │   ├── 02_variables.sk
 │   ├── 03_conditions.sk
@@ -275,7 +329,12 @@ sikhar/
 │   ├── 05_functions.sk
 │   ├── 06_collections.sk
 │   ├── 07_error_handling.sk
-│   └── 08_algorithms.sk
+│   ├── 08_algorithms.sk
+│   ├── 09_modules.sk
+│   ├── 10_stdlib.sk
+│   ├── 11_interpolation.sk
+│   ├── 12_assertions.sk
+│   └── math_utils.sk
 ├── docs/                      # 15 detailed documentation guides
 │   ├── introduction.md
 │   ├── installation.md
@@ -307,7 +366,7 @@ sikhar/
 
 ## 🧪 Running Automated Tests
 
-Run the full test suite with either command:
+Run the full dual-engine test suite:
 
 ```bash
 sk test
@@ -319,19 +378,24 @@ python -m unittest discover -s tests -p "test_*.py"
 
 Result:
 ```text
-Ran 49 tests in 0.010s
+Ran 63 tests in 0.029s
 OK
+=== Running Sikhar Python Test Suite ===
+
+=== Running Native Sikhar (.sk) Test Suite ===
+Testing tests\test_v020_features.sk ... PASSED
 ```
 
 ---
 
 ## 🗺️ Roadmap Ahead
 
-* **v0.2.0**: Modules (`aayaat`, `pathaau`), Standard Library (`std.*`), File I/O (`khola`, `padh`, `lekh`, `banda`).
-* **v0.3.0**: Bytecode Compiler & Virtual Machine.
-* **v0.4.0**: Networking & Sikhar Web framework.
-* **v0.5.0**: Language Server Protocol (LSP) & Package Manager.
-* **v1.0.0**: Production-grade Compiler (Native/Wasm) and standardized ecosystem.
+* [x] **v0.1.0**: Core Language Foundation (Lexer, Parser, Interpreter, REPL, CLI, Formatter).
+* [x] **v0.2.0**: Modules (`aayaat`, `pathaau`), Standard Library (`std.*`), File I/O, String Interpolation, Assertions (`jaach`).
+* [ ] **v0.3.0**: Bytecode Compiler & Virtual Machine (`.skc`).
+* [ ] **v0.4.0**: Networking & Sikhar Web framework.
+* [ ] **v0.5.0**: Language Server Protocol (LSP) & Package Manager.
+* [ ] **v1.0.0**: Production-grade Compiler (Native/Wasm) and standardized ecosystem.
 
 ---
 

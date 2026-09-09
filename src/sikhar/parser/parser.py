@@ -5,7 +5,7 @@ Parses a list of tokens into an Abstract Syntax Tree (AST).
 
 from typing import List, Optional, Tuple
 from ..lexer.token import Token
-from ..lexer.token_type import TokenType, RESERVED_FUTURE_KEYWORDS
+from ..lexer.token_type import TokenType, RESERVED_FUTURE_KEYWORDS, KEYWORDS
 from ..errors.error_types import SikharSyntaxError
 from .ast_nodes import (
     Program,
@@ -34,6 +34,10 @@ from .ast_nodes import (
     ListLiteral,
     MapLiteral,
     IndexExpression,
+    MemberExpression,
+    ImportExpression,
+    ExportStatement,
+    AssertStatement,
 )
 
 
@@ -161,6 +165,10 @@ class Parser:
             return self._parse_try_catch_statement()
         elif curr.type == TokenType.FAL:
             return self._parse_throw_statement()
+        elif curr.type == TokenType.PATHAAU:
+            return self._parse_export_statement()
+        elif curr.type == TokenType.JAACH:
+            return self._parse_assert_statement()
         else:
             return self._parse_expression_or_assignment()
 
@@ -207,17 +215,60 @@ class Parser:
 
     def _parse_badla_assignment(self) -> Assignment:
         tok = self._advance()  # Consume 'badla'
-        target = self._parse_primary()
-
-        # Target can be indexed e.g. badla arr[0] = 10
-        while self._match(TokenType.LBRACKET):
-            idx = self._parse_expression()
-            self._consume(TokenType.RBRACKET, "Expected ']' after index")
-            target = IndexExpression(line=target.line, column=target.column, target=target, index=idx)
-
+        target = self._parse_postfix()
         self._consume(TokenType.EQUAL, "Expected '=' in assignment")
         val = self._parse_expression()
         return Assignment(line=tok.line, column=tok.column, target=target, value=val)
+
+    def _parse_export_statement(self) -> ExportStatement:
+        tok = self._advance()  # Consume 'pathaau'
+        curr = self._current()
+        if curr.type in (TokenType.KAAM, TokenType.RAKHA, TokenType.STHAYI):
+            decl = self._parse_statement()
+            return ExportStatement(line=tok.line, column=tok.column, declaration=decl)
+        elif curr.type == TokenType.IDENTIFIER:
+            id_tok = self._advance()
+            return ExportStatement(line=tok.line, column=tok.column, symbol_name=str(id_tok.value))
+        else:
+            line_content = self._get_source_line(tok.line)
+            raise SikharSyntaxError(
+                "Expected declaration or identifier after 'pathaau'",
+                filename=self.filename,
+                line=tok.line,
+                column=tok.column,
+                source_line=line_content,
+            )
+
+    def _parse_assert_statement(self) -> AssertStatement:
+        tok = self._advance()  # Consume 'jaach'
+        cond = self._parse_expression()
+        msg = None
+        if self._match(TokenType.COMMA):
+            msg = self._parse_expression()
+        return AssertStatement(line=tok.line, column=tok.column, condition=cond, message=msg)
+
+    def _parse_import_expression(self) -> ImportExpression:
+        tok = self.tokens[self.pos - 1]  # 'aayaat' token
+        if self._check(TokenType.TEXT):
+            path_tok = self._advance()
+            return ImportExpression(line=tok.line, column=tok.column, module_path=str(path_tok.value), is_std=False)
+        elif self._check(TokenType.IDENTIFIER):
+            parts = [str(self._advance().value)]
+            while self._match(TokenType.DOT):
+                id_tok = self._consume(TokenType.IDENTIFIER, "Expected identifier after '.' in module path")
+                parts.append(str(id_tok.value))
+            path_str = ".".join(parts)
+            is_std = path_str.startswith("std.") or path_str == "std"
+            return ImportExpression(line=tok.line, column=tok.column, module_path=path_str, is_std=is_std)
+        else:
+            line_content = self._get_source_line(tok.line)
+            raise SikharSyntaxError(
+                "Expected module string or dot-path after 'aayaat'",
+                filename=self.filename,
+                line=tok.line,
+                column=tok.column,
+                source_line=line_content,
+            )
 
     def _parse_dekha_statement(self) -> DekhaStatement:
         tok = self._advance()  # Consume 'dekha'
@@ -434,6 +485,14 @@ class Parser:
                 idx = self._parse_expression()
                 self._consume(TokenType.RBRACKET, "Expected ']' after index")
                 expr = IndexExpression(line=expr.line, column=expr.column, target=expr, index=idx)
+            elif self._match(TokenType.DOT):
+                # Member access e.g. math.sqrt or file.hatau
+                curr = self._current()
+                if curr.type == TokenType.IDENTIFIER or curr.type in KEYWORDS.values():
+                    prop_tok = self._advance()
+                else:
+                    prop_tok = self._consume(TokenType.IDENTIFIER, "Expected property name after '.'")
+                expr = MemberExpression(line=expr.line, column=expr.column, target=expr, property_name=str(prop_tok.value))
             else:
                 break
 
@@ -467,6 +526,9 @@ class Parser:
         if self._match(TokenType.DEKHA):
             # Builtin dekha keyword used as expression/callee
             return Identifier(line=curr.line, column=curr.column, name="dekha")
+
+        if self._match(TokenType.AAYAAT):
+            return self._parse_import_expression()
 
         if self._match(TokenType.LPAREN):
             expr = self._parse_expression()

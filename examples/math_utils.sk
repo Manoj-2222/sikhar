@@ -1,0 +1,10 @@
+pathaau sthayi PI = 3.14159
+pathaau kaam ghan(n) {
+    farka n * n * n
+}
+pathaau kaam barga(n) {
+    farka n * n
+}
+pathaau kaam chhetra(r) {
+    farka PI * r * r
+}

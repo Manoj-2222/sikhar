@@ -1,0 +1,35 @@
+dekha "=== Sikhar Standard Library Showcase ==="
+aayaat std.math
+dekha "--- std.math ---"
+dekha "Absolute of -42: {math.abs(-42)}"
+dekha "Ceil of 3.14: {math.ceil(3.14)}"
+dekha "Floor of 3.89: {math.floor(3.89)}"
+aayaat std.text
+dekha "--- std.text ---"
+rakha raw_text = "  sikhar language  "
+rakha clean_text = text.trim(raw_text)
+dekha "Trimmed: '{clean_text}'"
+dekha "Uppercase: {text.upper(clean_text)}"
+dekha "Words: {text.split(clean_text)}"
+aayaat std.list
+dekha "--- std.list ---"
+rakha numbers = [5, 2, 8, 1, 9, 3]
+dekha "Original: {numbers}"
+dekha "Sorted: {list.sort(numbers)}"
+dekha "Reversed: {list.reverse(numbers)}"
+dekha "Sum: {list.sum(numbers)}"
+dekha "Min: {list.min(numbers)}, Max: {list.max(numbers)}"
+aayaat std.map
+dekha "--- std.map ---"
+rakha profile = {"name": "Sikhar", "type": "Language", "version": "0.2.0"}
+dekha "Keys: {map.keys(profile)}"
+dekha "Values: {map.values(profile)}"
+dekha "Has 'version': {map.has(profile, 'version')}"
+aayaat std.file
+dekha "--- std.file ---"
+rakha filename = "demo_stdlib_output.txt"
+file.write(filename, "Written with std.file from Sikhar v0.2.0!")
+dekha "File exists: {file.exists(filename)}"
+dekha "Content: {file.read(filename)}"
+file.remove(filename)
+dekha "After removal exists: {file.exists(filename)}"

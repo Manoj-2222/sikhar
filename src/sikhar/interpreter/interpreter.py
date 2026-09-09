@@ -24,6 +24,8 @@ from ..parser.ast_nodes import (
     TryStatement,
     ThrowStatement,
     ExpressionStatement,
+    ExportStatement,
+    AssertStatement,
     Literal,
     Identifier,
     BinaryExpression,
@@ -32,11 +34,14 @@ from ..parser.ast_nodes import (
     ListLiteral,
     MapLiteral,
     IndexExpression,
+    MemberExpression,
+    ImportExpression,
 )
 from .environment import Environment
 from .values import (
     SikharCallable,
     SikharFunction,
+    SikharModule,
     ReturnSignal,
     BreakSignal,
     ContinueSignal,
@@ -50,6 +55,7 @@ from ..errors.error_types import (
     SikharIndexError,
     SikharKeyError,
     SikharDivisionByZeroError,
+    SikharAssertionError,
     SikharUserThrowError,
 )
 
@@ -116,7 +122,30 @@ class Interpreter:
             return self._execute_try_catch(stmt)
         elif isinstance(stmt, ThrowStatement):
             return self._execute_throw(stmt)
+        elif isinstance(stmt, ExportStatement):
+            if stmt.declaration is not None:
+                return self.execute(stmt.declaration)
+            return None
+        elif isinstance(stmt, AssertStatement):
+            cond_val = self.evaluate(stmt.condition)
+            if not is_truthy(cond_val):
+                msg = "Assertion failed ('jaach')"
+                if stmt.message is not None:
+                    msg = sikhar_stringify(self.evaluate(stmt.message))
+                raise SikharAssertionError(
+                    msg,
+                    filename=self.filename,
+                    line=stmt.line,
+                    column=stmt.column,
+                    source_line=self._get_source_line(stmt.line),
+                )
+            return None
         elif isinstance(stmt, ExpressionStatement):
+            if isinstance(stmt.expression, ImportExpression):
+                mod = self.evaluate(stmt.expression)
+                mod_name = mod.name.split(".")[-1]
+                self.current_env.define(mod_name, mod)
+                return mod
             return self.evaluate(stmt.expression)
         elif isinstance(stmt, Block):
             return self.execute_block(stmt)
@@ -199,6 +228,22 @@ class Interpreter:
                     column=stmt.column,
                     source_line=source_line,
                 )
+        elif isinstance(stmt.target, MemberExpression):
+            target_obj = self.evaluate(stmt.target.target)
+            prop = stmt.target.property_name
+            if isinstance(target_obj, SikharModule):
+                target_obj.set_member(prop, val)
+                return val
+            elif isinstance(target_obj, dict):
+                target_obj[prop] = val
+                return val
+            raise SikharTypeError(
+                f"Cannot assign property '{prop}' on type '{type(target_obj).__name__}'",
+                filename=self.filename,
+                line=stmt.line,
+                column=stmt.column,
+                source_line=source_line,
+            )
 
         raise SikharRuntimeError(
             "Invalid assignment target",
@@ -309,6 +354,8 @@ class Interpreter:
         source_line = self._get_source_line(expr.line)
 
         if isinstance(expr, Literal):
+            if expr.literal_type == "text" and isinstance(expr.value, str):
+                return self._interpolate_string(expr.value, expr.line, expr.column)
             return expr.value
 
         elif isinstance(expr, Identifier):
@@ -402,6 +449,27 @@ class Interpreter:
                     source_line=source_line,
                 )
 
+        elif isinstance(expr, MemberExpression):
+            target = self.evaluate(expr.target)
+            prop = expr.property_name
+            if isinstance(target, SikharModule):
+                return target.get_member(prop, line=expr.line, col=expr.column, filename=self.filename)
+            elif isinstance(target, dict):
+                if prop in target:
+                    return target[prop]
+                raise SikharKeyError(f"Key '{prop}' not found in map", filename=self.filename, line=expr.line, column=expr.column, source_line=source_line)
+            raise SikharTypeError(
+                f"Cannot access property '{prop}' on type '{type(target).__name__}'",
+                filename=self.filename,
+                line=expr.line,
+                column=expr.column,
+                source_line=source_line,
+            )
+
+        elif isinstance(expr, ImportExpression):
+            from ..runtime.module_loader import MODULE_LOADER
+            return MODULE_LOADER.load_module(expr.module_path, self.filename, expr.line, expr.column)
+
         raise SikharRuntimeError(
             f"Unknown expression type: {type(expr).__name__}",
             filename=self.filename,
@@ -409,6 +477,49 @@ class Interpreter:
             column=expr.column,
             source_line=source_line,
         )
+
+    def _interpolate_string(self, text: str, line: int, col: int) -> str:
+        if "{" not in text and "\0" not in text:
+            return text
+
+        parts = []
+        i = 0
+        n = len(text)
+        while i < n:
+            if text[i] == "\0" and i + 1 < n and text[i + 1] in ("{", "}"):
+                parts.append(text[i + 1])
+                i += 2
+            elif text[i] == "{":
+                depth = 1
+                start = i + 1
+                j = start
+                in_str = False
+                while j < n and depth > 0:
+                    if text[j] == '"' and (j == 0 or text[j - 1] != "\\"):
+                        in_str = not in_str
+                    elif not in_str:
+                        if text[j] == "{":
+                            depth += 1
+                        elif text[j] == "}":
+                            depth -= 1
+                    j += 1
+                if depth > 0:
+                    parts.append(text[i])
+                    i += 1
+                else:
+                    expr_text = text[start:j - 1].strip()
+                    if expr_text:
+                        from ..lexer.lexer import Lexer
+                        from ..parser.parser import Parser
+                        expr_tokens = Lexer(expr_text, self.filename).tokenize()
+                        parsed_expr = Parser(expr_tokens, expr_text, self.filename)._parse_expression()
+                        val = self.evaluate(parsed_expr)
+                        parts.append(sikhar_stringify(val))
+                    i = j
+            else:
+                parts.append(text[i])
+                i += 1
+        return "".join(parts).replace("\0{", "{").replace("\0}", "}")
 
     def _eval_binary(self, expr: BinaryExpression) -> Any:
         op = expr.operator

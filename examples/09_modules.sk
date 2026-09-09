@@ -1,0 +1,9 @@
+dekha "=== Sikhar Module System Demo ==="
+aayaat math_utils.sk
+dekha "Value of PI from math_utils: {math_utils.PI}"
+dekha "Square of 5: {math_utils.barga(5)}"
+dekha "Cube of 4: {math_utils.ghan(4)}"
+dekha "Area of circle (radius 3): {math_utils.chhetra(3)}"
+rakha m = aayaat std.math
+dekha "Square root of 81: {m.sqrt(81)}"
+dekha "Power 2^8: {m.pow(2, 8)}"

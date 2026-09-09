@@ -1,0 +1,43 @@
+# Native Sikhar Test Suite for v0.2.0 Features
+aayaat std.math
+aayaat std.text
+aayaat std.list
+aayaat std.map
+aayaat std.file
+
+# 1. Assertions & Arithmetic
+jaach 10 + 20 == 30, "Basic addition should pass"
+jaach 2 * 3 == 6, "Multiplication should pass"
+
+# 2. String Interpolation
+rakha lang = "Sikhar"
+rakha ver = "0.2.0"
+rakha intro = "{lang} v{ver}"
+jaach intro == "Sikhar v0.2.0", "String interpolation should match"
+jaach "Sum: {5 + 5}" == "Sum: 10", "Interpolation expression should evaluate"
+
+# 3. Standard Library Modules
+jaach math.abs(-50) == 50, "math.abs should return absolute value"
+jaach math.ghaat(2, 4) == 16, "math.ghaat should compute power"
+jaach text.thulo("hello") == "HELLO", "text.thulo should uppercase"
+jaach text.sano("WORLD") == "world", "text.sano should lowercase"
+jaach list.ulta([1, 2, 3]) == [3, 2, 1], "list.ulta should reverse"
+
+rakha test_dict = {"x": 100, "y": 200}
+jaach map.cha(test_dict, "x") == sacho, "map.cha should find key"
+jaach map.cha(test_dict, "z") == jutho, "map.cha should not find missing key"
+
+# 4. File I/O Builtins & std.file
+rakha temp_file = "temp_native_test.txt"
+rakha f = khola(temp_file, "lekh")
+lekh(f, "Native test ok")
+banda(f)
+
+jaach file.cha(temp_file) == sacho, "Created file should exist"
+rakha f_in = khola(temp_file, "padh")
+rakha data = padh(f_in)
+banda(f_in)
+jaach data == "Native test ok", "Read data should match written data"
+
+file.hatau(temp_file)
+jaach file.cha(temp_file) == jutho, "Deleted file should no longer exist"
