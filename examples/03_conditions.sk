@@ -1,0 +1,26 @@
+rakha age = 20
+yadi age >= 18 {
+    dekha "Adult"
+} natra {
+    dekha "Minor"
+}
+rakha score = 85
+yadi score >= 90 {
+    dekha "Grade: A"
+} athawa score >= 80 {
+    dekha "Grade: B"
+} athawa score >= 70 {
+    dekha "Grade: C"
+} natra {
+    dekha "Grade: F"
+}
+rakha has_license = sacho
+rakha is_sober = sacho
+yadi has_license and is_sober {
+    dekha "Eligible to drive"
+} natra {
+    dekha "Cannot drive"
+}
+yadi not score < 50 {
+    dekha "Student passed the exam"
+}

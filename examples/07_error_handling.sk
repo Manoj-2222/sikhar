@@ -1,0 +1,16 @@
+koshish {
+    dekha "Inside try block..."
+    fal "Something went wrong"
+    dekha "This line will not run"
+} samata error {
+    dekha "Caught error: " + error
+}
+koshish {
+    rakha a = 10
+    rakha b = 0
+    rakha c = a / b
+    dekha c
+} samata err {
+    dekha "Caught arithmetic error: " + err
+}
+dekha "Program resumed successfully after errors."

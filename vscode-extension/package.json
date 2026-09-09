@@ -1,0 +1,35 @@
+{
+  "name": "sikhar-language",
+  "displayName": "Sikhar Language Support",
+  "description": "Official syntax highlighting and language support for the Sikhar programming language (.sk).",
+  "version": "0.1.0",
+  "publisher": "sikhar-lang",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "sikhar",
+        "aliases": [
+          "Sikhar",
+          "sikhar"
+        ],
+        "extensions": [
+          ".sk"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sikhar",
+        "scopeName": "source.sk",
+        "path": "./syntaxes/sikhar.tmLanguage.json"
+      }
+    ]
+  }
+}

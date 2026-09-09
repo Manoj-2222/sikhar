@@ -1,0 +1,14 @@
+rakha naam = "Manoj"
+rakha age = 20
+rakha price = 99.5
+rakha active = sacho
+rakha data = khali
+dekha "Initial age: " + age
+dekha "Active status: " + active
+badla age = 21
+dekha "Updated age: " + age
+sthayi pi = 3.14159
+dekha "Constant pi: " + pi
+rakha count: number = 100
+sthayi app_name: text = "SikharApp"
+dekha app_name + " count: " + count

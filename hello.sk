@@ -1,0 +1,7 @@
+rakha x = 10
+
+dekha x
+
+yadi x > 5 {
+    dekha "Thulo"
+}

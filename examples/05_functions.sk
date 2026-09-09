@@ -1,0 +1,34 @@
+kaam jod(a, b) {
+    farka a + b
+}
+
+rakha result = jod(10, 20)
+dekha "jod(10, 20) = " + result
+
+kaam greet(name) {
+    rakha prefix = "Namaste, "
+    farka prefix + name + "!"
+}
+
+dekha greet("Sikhar Developer")
+
+kaam factorial(n) {
+    yadi n <= 1 {
+        farka 1
+    }
+    farka n * factorial(n - 1)
+}
+
+dekha "Factorial of 5 = " + factorial(5)
+
+kaam fibonacci(n) {
+    yadi n <= 0 {
+        farka 0
+    }
+    yadi n == 1 {
+        farka 1
+    }
+    farka fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+dekha "Fibonacci(7) = " + fibonacci(7)

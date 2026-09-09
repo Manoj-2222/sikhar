@@ -1,0 +1,19 @@
+rakha numbers = [10, 20, 30]
+dekha "First element: " + numbers[0]
+dekha "Length: " + lamba(numbers)
+badla numbers[1] = 99
+dekha "Updated list: " + numbers
+jod_suchi(numbers, 40)
+dekha "After jod_suchi: " + numbers
+rakha removed = hatau_suchi(numbers, 0)
+dekha "Removed element: " + removed
+dekha "List now: " + numbers
+rakha user = {"name": "Manoj", "age": 20, "role": "Developer"}
+dekha "User name: " + user["name"]
+dekha "User age: " + user["age"]
+badla user["age"] = 21
+badla user["city"] = "Kathmandu"
+dekha "Updated user: " + user
+ko_lagi key ma user {
+    dekha key + " -> " + user[key]
+}

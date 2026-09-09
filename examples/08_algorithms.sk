@@ -1,0 +1,46 @@
+dekha "=== FizzBuzz (1 to 15) ==="
+rakha n = 1
+jaba n <= 15 {
+    yadi n % 3 == 0 and n % 5 == 0 {
+        dekha "FizzBuzz"
+    } athawa n % 3 == 0 {
+        dekha "Fizz"
+    } athawa n % 5 == 0 {
+        dekha "Buzz"
+    } natra {
+        dekha n
+    }
+    badla n = n + 1
+}
+
+kaam linear_search(items, target) {
+    rakha idx = 0
+    ko_lagi val ma items {
+        yadi val == target {
+            farka idx
+        }
+        badla idx = idx + 1
+    }
+    farka -1
+}
+
+dekha "=== Search Demo ==="
+rakha list_data = [45, 12, 89, 23, 7]
+rakha target_val = 89
+rakha pos = linear_search(list_data, target_val)
+dekha "Target " + target_val + " found at index: " + pos
+
+kaam calculate_sum(numbers) {
+    rakha total = 0
+    ko_lagi num ma numbers {
+        badla total = total + num
+    }
+    farka total
+}
+
+rakha grades = [80, 90, 70, 85, 95]
+rakha sum_val = calculate_sum(grades)
+rakha avg_val = sum_val / lamba(grades)
+dekha "=== Statistics ==="
+dekha "Total Sum: " + sum_val
+dekha "Average: " + avg_val

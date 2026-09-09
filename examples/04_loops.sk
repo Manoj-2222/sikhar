@@ -1,0 +1,22 @@
+dekha "--- While loop ---"
+rakha i = 1
+jaba i <= 5 {
+    dekha i
+    badla i = i + 1
+}
+dekha "--- For loop over list ---"
+rakha numbers = [10, 20, 30]
+ko_lagi number ma numbers {
+    dekha number
+}
+dekha "--- Loop control (rok and jaari) ---"
+rakha items = [1, 2, 3, 4, 5, 6]
+ko_lagi x ma items {
+    yadi x == 2 {
+        jaari
+    }
+    yadi x == 5 {
+        rok
+    }
+    dekha x
+}
