@@ -16,6 +16,7 @@ from ..interpreter.interpreter import Interpreter
 from ..formatter.formatter import Formatter
 from ..errors.error_types import SikharError
 from ..errors.reporter import print_error, format_error
+from ..vm import Compiler, VM, Disassembler, compile_file_to_skc, load_skc_file
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -29,11 +30,24 @@ if hasattr(sys.stderr, "reconfigure"):
         pass
 
 
-def run_file(file_path: str) -> int:
+def run_file(file_path: str, use_vm: bool = False) -> int:
     path = Path(file_path)
     if not path.exists():
         print(f"Error: File '{file_path}' does not exist.", file=sys.stderr)
         return 1
+
+    if path.suffix.lower() == ".skc":
+        try:
+            chunk = load_skc_file(str(path))
+            vm = VM(filename=str(path))
+            vm.run(chunk)
+            return 0
+        except SikharError as err:
+            print_error(err, "")
+            return 1
+        except Exception as exc:
+            print(f"VM execution error: {exc}", file=sys.stderr)
+            return 1
 
     try:
         source = path.read_text(encoding="utf-8")
@@ -44,14 +58,66 @@ def run_file(file_path: str) -> int:
     try:
         tokens = Lexer(source, str(path)).tokenize()
         ast = Parser(tokens, source, str(path)).parse()
-        interpreter = Interpreter(source, str(path))
-        interpreter.interpret(ast)
+
+        if use_vm:
+            chunk = Compiler(str(path)).compile(ast)
+            vm = VM(source=source, filename=str(path))
+            vm.run(chunk)
+        else:
+            interpreter = Interpreter(source, str(path))
+            interpreter.interpret(ast)
         return 0
     except SikharError as err:
         print_error(err, source)
         return 1
     except Exception as exc:
         print(f"Unexpected internal error: {exc}", file=sys.stderr)
+        return 1
+
+
+def compile_file(file_path: str, output_path: Optional[str] = None) -> int:
+    path = Path(file_path)
+    if not path.exists():
+        print(f"Error: Source file '{file_path}' does not exist.", file=sys.stderr)
+        return 1
+
+    try:
+        out = compile_file_to_skc(file_path, output_path)
+        print(f"Compiled: {file_path} -> {out}")
+        return 0
+    except SikharError as err:
+        source = path.read_text(encoding="utf-8") if path.exists() else ""
+        print_error(err, source)
+        return 1
+    except Exception as e:
+        print(f"Compilation error: {e}", file=sys.stderr)
+        return 1
+
+
+def disassemble_file(file_path: str) -> int:
+    path = Path(file_path)
+    if not path.exists():
+        print(f"Error: File '{file_path}' does not exist.", file=sys.stderr)
+        return 1
+
+    try:
+        if path.suffix.lower() == ".skc":
+            chunk = load_skc_file(str(path))
+        else:
+            source = path.read_text(encoding="utf-8")
+            tokens = Lexer(source, str(path)).tokenize()
+            ast = Parser(tokens, source, str(path)).parse()
+            chunk = Compiler(str(path)).compile(ast)
+
+        output = Disassembler.disassemble(chunk, name=str(path))
+        print(output)
+        return 0
+    except SikharError as err:
+        source = path.read_text(encoding="utf-8") if path.exists() else ""
+        print_error(err, source)
+        return 1
+    except Exception as e:
+        print(f"Disassembly error: {e}", file=sys.stderr)
         return 1
 
 
@@ -262,9 +328,36 @@ def main(args: Optional[List[str]] = None) -> int:
 
     if command == "run":
         if len(args) < 2:
-            print("Error: Missing file argument for 'run'. Usage: sk run <file.sk>", file=sys.stderr)
+            print("Error: Missing file argument for 'run'. Usage: sk run [--vm] <file.sk|file.skc>", file=sys.stderr)
             return 1
-        return run_file(args[1])
+        use_vm = False
+        target_file = None
+        for arg in args[1:]:
+            if arg == "--vm":
+                use_vm = True
+            elif target_file is None:
+                target_file = arg
+
+        if not target_file:
+            print("Error: Missing file argument for 'run'. Usage: sk run [--vm] <file.sk|file.skc>", file=sys.stderr)
+            return 1
+        return run_file(target_file, use_vm=use_vm)
+
+    if command == "compile":
+        if len(args) < 2:
+            print("Error: Missing source file. Usage: sk compile <file.sk> [-o <file.skc>]", file=sys.stderr)
+            return 1
+        src_file = args[1]
+        out_file = None
+        if len(args) >= 4 and args[2] == "-o":
+            out_file = args[3]
+        return compile_file(src_file, out_file)
+
+    if command == "dis":
+        if len(args) < 2:
+            print("Error: Missing file argument for 'dis'. Usage: sk dis <file.sk|file.skc>", file=sys.stderr)
+            return 1
+        return disassemble_file(args[1])
 
     if command == "check":
         if len(args) < 2:
@@ -288,8 +381,8 @@ def main(args: Optional[List[str]] = None) -> int:
     if command == "repl":
         return repl()
 
-    # If argument ends with .sk, treat as run
-    if command.endswith(".sk"):
+    # If argument ends with .sk or .skc, treat as run
+    if command.endswith(".sk") or command.endswith(".skc"):
         return run_file(command)
 
     print(f"Unknown command: '{command}'")
@@ -301,10 +394,12 @@ def print_help() -> None:
     print(f"""Sikhar Programming Language v{__version__}
 Usage:
   sk [command] [options]
-  sk <file.sk>
+  sk <file.sk|file.skc>
 
 Commands:
-  run <file.sk>       Execute a Sikhar source file
+  run [--vm] <file>   Execute a Sikhar source (.sk) or bytecode (.skc) file
+  compile <file.sk>   Compile Sikhar source to binary bytecode (.skc)
+  dis <file>          Disassemble source or bytecode to human-readable IR
   check <file.sk>     Check syntax and parse without running
   format [file.sk]    Format source files deterministically
   init <project>      Create a new Sikhar project scaffold
@@ -317,3 +412,4 @@ Commands:
 
 if __name__ == "__main__":
     sys.exit(main())
+

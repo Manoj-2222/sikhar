@@ -37,6 +37,13 @@ class SikharSyntaxError(SikharError):
         return "SyntaxError"
 
 
+class SikharCompileError(SikharError):
+    """Raised during bytecode compilation."""
+    @property
+    def error_type_name(self) -> str:
+        return "CompileError"
+
+
 class SikharRuntimeError(SikharError):
     """Generic runtime error during execution."""
     @property

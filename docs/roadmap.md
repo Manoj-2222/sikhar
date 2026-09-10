@@ -23,7 +23,7 @@ Sikhar follows an incremental, deliberate release roadmap.
 
 ---
 
-## v0.2.0 — Current Release (Modules & Standard Library)
+## v0.2.0 — Modules & Standard Library
 
 * [x] Module imports and exports (`aayaat`, `pathaau`) with file isolation & caching
 * [x] Structured Standard Library namespaces (`std.math`, `std.text`, `std.list`, `std.map`, `std.time`, `std.file`, `std.system`)
@@ -34,13 +34,16 @@ Sikhar follows an incremental, deliberate release roadmap.
 
 ---
 
-## v0.3.0 — Bytecode Compiler & Virtual Machine
+## v0.3.0 — Current Release (Bytecode Compiler & Virtual Machine)
 
-* [ ] Sikhar Bytecode specification & IR
-* [ ] Bytecode compiler
-* [ ] Stack-based Sikhar Virtual Machine (VM)
-* [ ] Bytecode serialization (`.skc` files)
-* [ ] Significant performance benchmarks
+* [x] Sikhar Bytecode specification & IR (`OpCode` enum & instruction set)
+* [x] Stack-based Bytecode compiler (`Compiler` with lexical scoping and jump patching)
+* [x] High-performance stack-based Virtual Machine (`VM` with CallFrames)
+* [x] Binary bytecode serialization & deserialization (`.skc` format)
+* [x] Built-in Bytecode Disassembler (`sk dis`)
+* [x] CLI enhancements: `sk compile`, `sk dis`, `sk run --vm`, and direct `.skc` execution
+* [x] Performance benchmarks comparing AST tree-walker vs Virtual Machine
+
 
 ---
 

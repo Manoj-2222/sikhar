@@ -13,7 +13,7 @@ class TestCLI(unittest.TestCase):
         try:
             exit_code = main(["version"])
             self.assertEqual(exit_code, 0)
-            self.assertIn("Sikhar v0.2.0", captured.getvalue())
+            self.assertIn("Sikhar v0.3.0", captured.getvalue())
         finally:
             sys.stdout = old_stdout
 
@@ -24,6 +24,8 @@ class TestCLI(unittest.TestCase):
             exit_code = main(["help"])
             self.assertEqual(exit_code, 0)
             self.assertIn("Commands:", captured.getvalue())
+            self.assertIn("compile", captured.getvalue())
+            self.assertIn("dis", captured.getvalue())
         finally:
             sys.stdout = old_stdout
 
@@ -49,6 +51,42 @@ class TestCLI(unittest.TestCase):
         finally:
             sys.stdout = old_stdout
 
+    def test_run_vm_flag(self):
+        old_stdout = sys.stdout
+        sys.stdout = captured = StringIO()
+        try:
+            exit_code = main(["run", "--vm", "hello.sk"])
+            self.assertEqual(exit_code, 0)
+            output = captured.getvalue().strip().splitlines()
+            self.assertIn("10", output)
+            self.assertIn("Thulo", output)
+        finally:
+            sys.stdout = old_stdout
+
+    def test_dis_command(self):
+        old_stdout = sys.stdout
+        sys.stdout = captured = StringIO()
+        try:
+            exit_code = main(["dis", "hello.sk"])
+            self.assertEqual(exit_code, 0)
+            self.assertIn("Bytecode Disassembly", captured.getvalue())
+        finally:
+            sys.stdout = old_stdout
+
+    def test_compile_command(self):
+        old_stdout = sys.stdout
+        sys.stdout = captured = StringIO()
+        out_skc = Path("test_cli_out.skc")
+        try:
+            exit_code = main(["compile", "hello.sk", "-o", str(out_skc)])
+            self.assertEqual(exit_code, 0)
+            self.assertTrue(out_skc.exists())
+            self.assertIn("Compiled:", captured.getvalue())
+        finally:
+            sys.stdout = old_stdout
+            if out_skc.exists():
+                out_skc.unlink()
+
     def test_run_missing_file_returns_error_code(self):
         old_stderr = sys.stderr
         sys.stderr = captured = StringIO()
@@ -61,3 +99,4 @@ class TestCLI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -10,9 +10,9 @@
  |____/|_|_|\_\_| |_|\__,_|_|    
 ```
 
-**Sikhar (`v0.2.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, and pinpoint diagnostics.
+**Sikhar (`v0.3.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, and pinpoint diagnostics.
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Manoj-2222/sikhar)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/Manoj-2222/sikhar)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 
@@ -23,11 +23,13 @@
 ## 🏔️ Core Identity
 
 * **Language Name**: Sikhar
-* **Current Version**: v0.2.0
+* **Current Version**: v0.3.0
 * **Source Extension**: `.sk`
+* **Bytecode Extension**: `.skc`
 * **CLI Command**: `sk`
-* **Execution Model**: Pure AST Tree-Walking Interpreter
+* **Execution Model**: Dual-Engine (AST Tree-Walking Interpreter + Stack-Based Bytecode VM)
 * **Dependencies**: Zero external dependencies (Pure Python 3.10+ Standard Library)
+
 
 ---
 
@@ -249,19 +251,37 @@ jaach 10 + 20 == 30, "Math sanity check"
 jaach text.contains("hello world", "world")
 ```
 
+### 11. Bytecode Compiler & Virtual Machine (`.skc`)
+
+Compile any Sikhar script to portable binary bytecode for execution on the stack-based VM:
+
+```bash
+# Compile to binary bytecode (.skc)
+sk compile examples/01_hello.sk -o hello.skc
+
+# Run on the Virtual Machine
+sk run --vm examples/01_hello.sk
+sk run hello.skc
+
+# Disassemble into human-readable IR
+sk dis examples/01_hello.sk
+```
+
 ---
 
 ## 🛠️ CLI Commands (`sk`)
 
 ```bash
-sk run <file.sk>       # Execute a Sikhar source file
-sk check <file.sk>     # Parse and validate syntax without execution
-sk format [file.sk]    # Deterministically format source code
-sk test                # Run test suite (Python + Native .sk tests)
-sk init <project>      # Scaffold a new project
-sk repl                # Start interactive REPL
-sk version             # Display current version
-sk help                # Show help message
+sk run [--vm] <file>  # Execute source (.sk) or compiled bytecode (.skc)
+sk compile <file.sk>  # Compile source to binary bytecode (.skc)
+sk dis <file>         # Disassemble source or bytecode to human-readable IR
+sk check <file.sk>    # Parse and validate syntax without execution
+sk format [file.sk]   # Deterministically format source code
+sk test               # Run test suite (Python + Native .sk tests)
+sk init <project>     # Scaffold a new project
+sk repl               # Start interactive REPL
+sk version            # Display current version
+sk help               # Show help message
 ```
 
 ---
@@ -285,6 +305,14 @@ sikhar/
 │       │   ├── environment.py
 │       │   ├── values.py
 │       │   └── interpreter.py
+│       ├── vm/                # Stack-based Bytecode Virtual Machine (v0.3.0)
+│       │   ├── __init__.py
+│       │   ├── opcodes.py     # Instruction set & OpCodes
+│       │   ├── chunk.py       # Instruction & constant chunk containers
+│       │   ├── compiler.py    # AST-to-Bytecode compiler & scope resolver
+│       │   ├── vm.py          # High-performance stack VM & CallFrames
+│       │   ├── disassembler.py# Bytecode disassembler
+│       │   └── serializer.py  # .skc binary serialization & loader
 │       ├── runtime/           # Builtins & ModuleLoader
 │       │   ├── builtins.py
 │       │   └── module_loader.py
@@ -307,6 +335,8 @@ sikhar/
 ├── bin/
 │   ├── sk.bat                 # Windows CLI launcher
 │   └── sk                     # POSIX shell launcher
+├── benchmarks/                # Performance benchmarks
+│   └── run_benchmarks.py
 ├── tests/                     # Test suite (Python + Native .sk)
 │   ├── test_lexer.py
 │   ├── test_parser.py
@@ -320,22 +350,12 @@ sikhar/
 │   ├── test_stdlib.py
 │   ├── test_interpolation.py
 │   ├── test_assert.py
+│   ├── test_compiler.py       # Compiler & disassembler unit tests
+│   ├── test_vm.py             # VM execution unit tests
+│   ├── test_skc.py            # .skc serialization tests
 │   └── test_v020_features.sk  # Native .sk test suite
 ├── examples/                  # 13 runnable example scripts
-│   ├── 01_hello.sk
-│   ├── 02_variables.sk
-│   ├── 03_conditions.sk
-│   ├── 04_loops.sk
-│   ├── 05_functions.sk
-│   ├── 06_collections.sk
-│   ├── 07_error_handling.sk
-│   ├── 08_algorithms.sk
-│   ├── 09_modules.sk
-│   ├── 10_stdlib.sk
-│   ├── 11_interpolation.sk
-│   ├── 12_assertions.sk
-│   └── math_utils.sk
-├── docs/                      # 15 detailed documentation guides
+├── docs/                      # 16 detailed documentation guides
 │   ├── introduction.md
 │   ├── installation.md
 │   ├── syntax.md
@@ -349,13 +369,10 @@ sikhar/
 │   ├── errors.md
 │   ├── modules.md
 │   ├── standard-library.md
+│   ├── bytecode-vm.md         # VM architecture & instruction set guide
 │   ├── cli.md
 │   └── roadmap.md
 ├── vscode-extension/          # Official VS Code syntax highlighting
-│   ├── package.json
-│   ├── language-configuration.json
-│   └── syntaxes/
-│       └── sikhar.tmLanguage.json
 ├── pyproject.toml
 ├── sikhar.toml
 ├── LICENSE
@@ -378,7 +395,7 @@ python -m unittest discover -s tests -p "test_*.py"
 
 Result:
 ```text
-Ran 63 tests in 0.029s
+Ran 87 tests in 0.029s
 OK
 === Running Sikhar Python Test Suite ===
 
@@ -392,7 +409,7 @@ Testing tests\test_v020_features.sk ... PASSED
 
 * [x] **v0.1.0**: Core Language Foundation (Lexer, Parser, Interpreter, REPL, CLI, Formatter).
 * [x] **v0.2.0**: Modules (`aayaat`, `pathaau`), Standard Library (`std.*`), File I/O, String Interpolation, Assertions (`jaach`).
-* [ ] **v0.3.0**: Bytecode Compiler & Virtual Machine (`.skc`).
+* [x] **v0.3.0**: Bytecode Compiler & Virtual Machine (`.skc`), Disassembler (`sk dis`).
 * [ ] **v0.4.0**: Networking & Sikhar Web framework.
 * [ ] **v0.5.0**: Language Server Protocol (LSP) & Package Manager.
 * [ ] **v1.0.0**: Production-grade Compiler (Native/Wasm) and standardized ecosystem.
@@ -402,3 +419,4 @@ Testing tests\test_v020_features.sk ... PASSED
 ## 📜 License
 
 Licensed under the [MIT License](LICENSE).
+
