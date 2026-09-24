@@ -2,7 +2,7 @@
   "name": "sikhar-language",
   "displayName": "Sikhar Language Support",
   "description": "Official syntax highlighting and language support for the Sikhar programming language (.sk).",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "sikhar-lang",
   "engines": {
     "vscode": "^1.75.0"

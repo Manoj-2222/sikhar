@@ -20,6 +20,7 @@ from ..parser.ast_nodes import (
     BreakStatement,
     ContinueStatement,
     FunctionDeclaration,
+    FunctionExpression,
     ReturnStatement,
     TryStatement,
     ThrowStatement,
@@ -236,5 +237,13 @@ class Formatter:
             if expr.is_std or not expr.module_path.startswith((".", "/")):
                 return f"aayaat {expr.module_path}"
             return f'aayaat "{expr.module_path}"'
+
+        elif isinstance(expr, FunctionExpression):
+            name_str = f" {expr.name}" if expr.name else ""
+            params_str = ", ".join(expr.parameters)
+            body_lines = [f"kaam{name_str}({params_str}) {{"]
+            body_lines.extend(self._format_block_lines(expr.body, 1))
+            body_lines.append("}")
+            return "\n".join(body_lines)
 
         return str(expr)

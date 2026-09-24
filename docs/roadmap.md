@@ -34,7 +34,7 @@ Sikhar follows an incremental, deliberate release roadmap.
 
 ---
 
-## v0.3.0 — Current Release (Bytecode Compiler & Virtual Machine)
+## v0.3.0 — Bytecode Compiler & Virtual Machine
 
 * [x] Sikhar Bytecode specification & IR (`OpCode` enum & instruction set)
 * [x] Stack-based Bytecode compiler (`Compiler` with lexical scoping and jump patching)
@@ -44,32 +44,63 @@ Sikhar follows an incremental, deliberate release roadmap.
 * [x] CLI enhancements: `sk compile`, `sk dis`, `sk run --vm`, and direct `.skc` execution
 * [x] Performance benchmarks comparing AST tree-walker vs Virtual Machine
 
-
 ---
 
 ## v0.4.0 — Web Framework & Networking
 
-* [ ] Native HTTP client and server
-* [ ] Official Sikhar Web framework
-* [ ] JSON serialization & deserialization
-* [ ] REST API routing & middleware
-* [ ] Database driver interfaces
+* [x] Native HTTP client and standalone HTTP server (`std.http`)
+* [x] Official Sikhar Web framework (`std.web`) with routing, parameterized paths, and middleware
+* [x] Fast JSON serialization, deserialization & validation (`std.json`)
+* [x] Embedded SQLite database driver (`std.db`) with parameterized queries and transactions
+* [x] Reentrant VM callbacks and first-class anonymous function expressions (`kaam(...) { ... }`)
+* [x] CLI web server command (`sk serve`) with live reloading and static asset hosting
+* [x] Zero external dependencies maintained across both AST interpreter and Bytecode VM
 
 ---
 
-## v0.5.0 — Developer Tooling & Ecosystem
-
-* [ ] Sikhar Language Server Protocol (LSP) implementation
-* [ ] Full VS Code language server extension (diagnostics, autocomplete, go-to-def)
-* [ ] Interactive debugger (DAP)
-* [ ] Package manager (`sk add`, `sk install`, `sk publish`)
-* [ ] Official documentation portal
+## v0.5.0 — Developer Tooling & LSP
+* [x] Standard JSON-RPC 2.0 Language Server (`sk lsp`) with diagnostics, hover, symbols, and completion
+* [x] Automated benchmarking engine (`sk bench`) comparing AST vs Bytecode VM
 
 ---
 
-## v1.0.0 — Production-Ready Sikhar
+## v0.6.0 — Concurrency & System Processes
+* [x] Asynchronous multi-threaded worker tasks (`std.task`) with thread-isolated execution
+* [x] Child process execution, pipes, and environment variables (`std.process`)
 
-* [ ] Frozen, standardized language specification
-* [ ] AOT compiler (LLVM backend / WebAssembly)
-* [ ] Native cross-platform binary generation
-* [ ] Production web & desktop ecosystem
+---
+
+## v0.7.0 — Cryptography & Security
+* [x] Secure hashing algorithms (`std.crypto`: SHA-256, SHA-512, MD5)
+* [x] Keyed HMAC message authentication and Base64 encode/decode
+* [x] Cryptographically secure random tokens and nonces
+
+---
+
+## v0.8.0 — Package Management & Manifests
+* [x] Project manifest format (`sikhar.toml`) with root and dependency sections
+* [x] Dependency management CLI: `sk add` and `sk install`
+* [x] Standalone distribution packager: `sk publish`
+
+---
+
+## v0.9.0 — Structured Data & Text Processing
+* [x] Built-in CSV parser, generator, and file I/O (`std.csv`) with custom delimiters
+* [x] Regular expression pattern matching, search, and substitution (`std.regex`)
+
+---
+
+## v1.0.0 — Production-Ready Release (Unified Standard)
+* [x] Standalone executable and binary bundler (`sk build`) producing zero-dependency `.pyz` and `.bat` executables
+* [x] Formal frozen language specification (`docs/language-specification-v1.0.md`) guaranteeing syntax and bytecode stability
+* [x] Official distribution packages (`sikhar-1.0.0-py3-none-any.whl` and `sikhar-1.0.0.tar.gz`)
+* [x] Dual-engine execution parity across AST Tree-Walker and Bytecode Virtual Machine
+* [x] Full test suite with 120+ automated unit tests and native `.sk` test runners
+* [x] Zero external dependencies across core engine, stdlib, web framework, LSP, and package manager
+
+---
+
+## Post-1.0 — Future Horizons
+* [ ] LLVM / WebAssembly AOT backend for direct native machine code generation
+* [ ] Interactive Step Debugger (DAP protocol)
+* [ ] Cloud package registry portal

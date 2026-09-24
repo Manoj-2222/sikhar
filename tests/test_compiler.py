@@ -49,6 +49,17 @@ class TestCompiler(unittest.TestCase):
         self.assertIn(OpCode.OP_MAKE_FUNCTION, chunk.code)
         self.assertIn(OpCode.OP_CALL, chunk.code)
 
+    def test_compile_function_expression(self):
+        code = """
+        rakha mul = kaam(x, y) {
+            farka x * y
+        }
+        rakha res = mul(3, 4)
+        """
+        chunk = self.compile_source(code)
+        self.assertIn(OpCode.OP_MAKE_FUNCTION, chunk.code)
+        self.assertIn(OpCode.OP_CALL, chunk.code)
+
     def test_compile_loops(self):
         code = """
         rakha i = 0

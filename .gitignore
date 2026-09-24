@@ -43,3 +43,4 @@ venv.bak/
 
 # Sikhar artifacts
 *.skc
+.sikhar/

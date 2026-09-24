@@ -309,6 +309,127 @@ def repl() -> int:
     return 0
 
 
+def serve_app(args: List[str]) -> int:
+    port = 8000
+    host = "127.0.0.1"
+    target = None
+    use_vm = False
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--vm":
+            use_vm = True
+            i += 1
+        elif arg in ("-p", "--port") and i + 1 < len(args):
+            try:
+                port = int(args[i + 1])
+            except ValueError:
+                print(f"Error: Invalid port '{args[i + 1]}'", file=sys.stderr)
+                return 1
+            i += 2
+        elif arg in ("-h", "--host") and i + 1 < len(args):
+            host = args[i + 1]
+            i += 2
+        elif target is None:
+            target = arg
+            i += 1
+        else:
+            i += 1
+
+    if target is None:
+        if Path("src/main.sk").exists():
+            target = "src/main.sk"
+        elif Path("main.sk").exists():
+            target = "main.sk"
+        else:
+            target = "."
+
+    target_path = Path(target)
+    if not target_path.exists():
+        print(f"Error: Target '{target}' does not exist.", file=sys.stderr)
+        return 1
+
+    import os
+    os.environ["SIKHAR_PORT"] = str(port)
+    os.environ["SIKHAR_HOST"] = str(host)
+
+    if target_path.is_file() and target_path.suffix.lower() in (".sk", ".skc"):
+        print(f"🏔️  Sikhar v{__version__} serving '{target}' on http://{host}:{port} ({'VM' if use_vm else 'Interpreter'})")
+        return run_file(str(target_path), use_vm=use_vm)
+    else:
+        from ..std.web import WebApp
+        interp = Interpreter(filename="<serve>")
+        app = WebApp(interp)
+        app.static("/", str(target_path))
+        print(f"🏔️  Sikhar v{__version__} serving directory '{target_path.resolve()}' on http://{host}:{port}")
+        print("Press Ctrl+C to stop.")
+        try:
+            app.listen(port, host)
+            return 0
+        except KeyboardInterrupt:
+            print("\nServer stopped. Dhanyabad!")
+            return 0
+
+
+def build_bundle(args: List[str]) -> int:
+    if not args:
+        print("Error: Missing file argument for 'build'. Usage: sk build <file.sk|file.skc> [-o <out.pyz>] [--ast] [--no-wrapper]", file=sys.stderr)
+        return 1
+
+    target_file = None
+    output_path = None
+    use_vm = True
+    create_wrapper = True
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in ("-o", "--output") and i + 1 < len(args):
+            output_path = args[i + 1]
+            i += 2
+        elif arg == "--ast":
+            use_vm = False
+            i += 1
+        elif arg == "--vm":
+            use_vm = True
+            i += 1
+        elif arg == "--no-wrapper":
+            create_wrapper = False
+            i += 1
+        elif target_file is None:
+            target_file = arg
+            i += 1
+        else:
+            i += 1
+
+    if not target_file:
+        print("Error: Missing file argument for 'build'. Usage: sk build <file.sk|file.skc> [-o <out.pyz>]", file=sys.stderr)
+        return 1
+
+    if not Path(target_file).exists():
+        print(f"Error: Target file '{target_file}' does not exist.", file=sys.stderr)
+        return 1
+
+    try:
+        from ..builder.bundle import build_standalone
+        pyz_file, bat_file = build_standalone(
+            entry_file=target_file,
+            output_path=output_path,
+            use_vm=use_vm,
+            create_wrapper=create_wrapper,
+        )
+        print(f"📦 Successfully built standalone executable:")
+        print(f"  - Bundle:  {pyz_file}")
+        if bat_file and bat_file.exists():
+            print(f"  - Launcher: {bat_file}")
+        print(f"  Engine:   {'Bytecode VM' if use_vm else 'AST Interpreter'}")
+        return 0
+    except Exception as e:
+        print(f"Build failed: {e}", file=sys.stderr)
+        return 1
+
+
 def main(args: Optional[List[str]] = None) -> int:
     if args is None:
         args = sys.argv[1:]
@@ -325,6 +446,49 @@ def main(args: Optional[List[str]] = None) -> int:
     if command in ("-h", "--help", "help"):
         print_help()
         return 0
+
+    if command == "build":
+        return build_bundle(args[1:])
+
+    if command == "serve":
+        return serve_app(args[1:])
+
+    if command == "bench":
+        if len(args) < 2:
+            print("Error: Missing file argument for 'bench'. Usage: sk bench <file.sk> [--iterations <N>]", file=sys.stderr)
+            return 1
+        iterations = 5
+        file_arg = args[1]
+        if len(args) >= 4 and args[2] in ("-i", "--iterations"):
+            try:
+                iterations = int(args[3])
+            except ValueError:
+                pass
+        from ..bench.runner import run_benchmark
+        return run_benchmark(file_arg, iterations=iterations)
+
+    if command == "lsp":
+        from ..lsp.server import start_lsp_server
+        return start_lsp_server()
+
+    if command == "add":
+        if len(args) < 2:
+            print("Error: Missing package name. Usage: sk add <package> [--version <ver>]", file=sys.stderr)
+            return 1
+        pkg_name = args[1]
+        ver = "*"
+        if len(args) >= 4 and args[2] in ("-v", "--version"):
+            ver = args[3]
+        from ..pkg.manager import add_dependency
+        return add_dependency(pkg_name, ver)
+
+    if command == "install":
+        from ..pkg.manager import install_dependencies
+        return install_dependencies()
+
+    if command == "publish":
+        from ..pkg.manager import publish_package
+        return publish_package()
 
     if command == "run":
         if len(args) < 2:
@@ -397,16 +561,23 @@ Usage:
   sk <file.sk|file.skc>
 
 Commands:
-  run [--vm] <file>   Execute a Sikhar source (.sk) or bytecode (.skc) file
-  compile <file.sk>   Compile Sikhar source to binary bytecode (.skc)
-  dis <file>          Disassemble source or bytecode to human-readable IR
-  check <file.sk>     Check syntax and parse without running
-  format [file.sk]    Format source files deterministically
-  init <project>      Create a new Sikhar project scaffold
-  test                Run automated test suite
-  repl                Start interactive Sikhar session
-  version             Display current version
-  help                Show this help message
+  run [--vm] <file>       Execute a Sikhar source (.sk) or bytecode (.skc) file
+  build <file> [opt]      Build a standalone executable bundle (.pyz, .bat)
+  serve [file|dir] [opt]  Serve a Sikhar web app or static directory (--port, --host, --vm)
+  bench <file.sk> [opt]   Benchmark execution speed (AST vs VM comparison)
+  compile <file.sk>       Compile Sikhar source to binary bytecode (.skc)
+  dis <file>              Disassemble source or bytecode to human-readable IR
+  check <file.sk>         Check syntax and parse without running
+  format [file.sk]        Format source files deterministically
+  init <project>          Create a new Sikhar project scaffold
+  add <package>           Add a dependency to sikhar.toml
+  install                 Install dependencies declared in sikhar.toml
+  publish                 Package and prepare project for distribution
+  test                    Run automated test suite
+  lsp                     Start Language Server Protocol (JSON-RPC)
+  repl                    Start interactive Sikhar session
+  version                 Display current version
+  help                    Show this help message
 """)
 
 

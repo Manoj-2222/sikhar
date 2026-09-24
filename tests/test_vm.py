@@ -155,6 +155,20 @@ class TestVM(unittest.TestCase):
         out = self.run_code(code)
         self.assertEqual(out, ["Running Sikhar v0.3.0!"])
 
+    def test_vm_closures_and_captured_scope(self):
+        code = """
+        kaam make_adder(n) {
+            farka kaam(x) {
+                farka x + n
+            }
+        }
+        rakha add10 = make_adder(10)
+        dekha add10(5)
+        dekha add10(20)
+        """
+        out = self.run_code(code)
+        self.assertEqual(out, ["15", "30"])
+
 
 if __name__ == "__main__":
     unittest.main()

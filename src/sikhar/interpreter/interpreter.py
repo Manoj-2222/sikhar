@@ -20,6 +20,7 @@ from ..parser.ast_nodes import (
     BreakStatement,
     ContinueStatement,
     FunctionDeclaration,
+    FunctionExpression,
     ReturnStatement,
     TryStatement,
     ThrowStatement,
@@ -236,6 +237,9 @@ class Interpreter:
                 return val
             elif isinstance(target_obj, dict):
                 target_obj[prop] = val
+                return val
+            elif hasattr(target_obj, prop):
+                setattr(target_obj, prop, val)
                 return val
             raise SikharTypeError(
                 f"Cannot assign property '{prop}' on type '{type(target_obj).__name__}'",
@@ -458,6 +462,8 @@ class Interpreter:
                 if prop in target:
                     return target[prop]
                 raise SikharKeyError(f"Key '{prop}' not found in map", filename=self.filename, line=expr.line, column=expr.column, source_line=source_line)
+            elif hasattr(target, prop):
+                return getattr(target, prop)
             raise SikharTypeError(
                 f"Cannot access property '{prop}' on type '{type(target).__name__}'",
                 filename=self.filename,
@@ -469,6 +475,16 @@ class Interpreter:
         elif isinstance(expr, ImportExpression):
             from ..runtime.module_loader import MODULE_LOADER
             return MODULE_LOADER.load_module(expr.module_path, self.filename, expr.line, expr.column)
+
+        elif isinstance(expr, FunctionExpression):
+            decl = FunctionDeclaration(
+                line=expr.line,
+                column=expr.column,
+                name=expr.name or "(anonymous)",
+                parameters=expr.parameters,
+                body=expr.body,
+            )
+            return SikharFunction(decl, self.current_env)
 
         raise SikharRuntimeError(
             f"Unknown expression type: {type(expr).__name__}",
@@ -508,13 +524,25 @@ class Interpreter:
                     i += 1
                 else:
                     expr_text = text[start:j - 1].strip()
+                    parsed_expr = None
                     if expr_text:
-                        from ..lexer.lexer import Lexer
-                        from ..parser.parser import Parser
-                        expr_tokens = Lexer(expr_text, self.filename).tokenize()
-                        parsed_expr = Parser(expr_tokens, expr_text, self.filename)._parse_expression()
+                        try:
+                            from ..lexer.lexer import Lexer
+                            from ..parser.parser import Parser
+                            expr_tokens = Lexer(expr_text, self.filename).tokenize()
+                            p = Parser(expr_tokens, expr_text, self.filename)
+                            cand = p._parse_expression()
+                            p._skip_newlines()
+                            if p._is_at_end():
+                                parsed_expr = cand
+                        except Exception:
+                            parsed_expr = None
+
+                    if parsed_expr is not None:
                         val = self.evaluate(parsed_expr)
                         parts.append(sikhar_stringify(val))
+                    else:
+                        parts.append(text[i:j])
                     i = j
             else:
                 parts.append(text[i])

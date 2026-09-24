@@ -1,0 +1,47 @@
+# 17_database_sqlite.sk
+# Demonstrates SQLite database operations using std.db in Sikhar
+
+aayaat std.db
+
+dekha "=== Sikhar SQLite Database (std.db) Demo ==="
+
+# 1. Connect to an in-memory SQLite database
+rakha conn = db.connect(":memory:")
+dekha "Connected to database: :memory:"
+
+# 2. Create tables
+conn.execute("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, points INTEGER)")
+dekha "Created 'users' table."
+
+# 3. Parameterized INSERT statements (prevents SQL injection)
+rakha ins1 = conn.execute("INSERT INTO users (name, email, points) VALUES (?, ?, ?)", ["Aarav", "aarav@example.com", 150])
+dekha "Inserted Aarav with ID: " + ins1["last_id"]
+
+rakha ins2 = conn.execute("INSERT INTO users (name, email, points) VALUES (?, ?, ?)", ["Sita", "sita@example.com", 320])
+dekha "Inserted Sita with ID: " + ins2["last_id"]
+
+rakha ins3 = conn.execute("INSERT INTO users (name, email, points) VALUES (?, ?, ?)", ["Kiran", "kiran@example.com", 90])
+dekha "Inserted Kiran with ID: " + ins3["last_id"]
+
+# 4. SELECT query returning a list of column-mapped dictionaries
+rakha all_users = conn.query("SELECT id, name, email, points FROM users ORDER BY points DESC")
+dekha "Total users retrieved: " + lamba(all_users)
+
+ko_lagi u ma all_users {
+    dekha "  - #" + u["id"] + " " + u["name"] + " (" + u["email"] + ") -> " + u["points"] + " pts"
+}
+
+# 5. Query a single row with query_one
+rakha top_user = conn.query_one("SELECT name, points FROM users ORDER BY points DESC LIMIT 1")
+dekha "Top user: " + top_user["name"] + " with " + top_user["points"] + " points"
+
+# 6. UPDATE query
+rakha update_res = conn.execute("UPDATE users SET points = points + 50 WHERE name = ?", ["Kiran"])
+dekha "Rows updated: " + update_res["rows_affected"]
+
+rakha kiran_updated = conn.query_one("SELECT name, points FROM users WHERE name = ?", ["Kiran"])
+dekha "Kiran updated points: " + kiran_updated["points"]
+
+# 7. Close database connection
+conn.close()
+dekha "Database connection closed cleanly."

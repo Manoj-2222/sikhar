@@ -100,20 +100,59 @@ class VM:
         return self._execute()
 
 
-    def _execute(self) -> Any:
+    def call_function(self, function: Any, arguments: List[Any], line: int = 1, column: int = 1) -> Any:
+        """Call a Sikhar or Python function within the VM context."""
+        if isinstance(function, BuiltinFunction):
+            return function.call(self, arguments, line, column)
+        elif isinstance(function, SikharCallable) and not isinstance(function, BytecodeFunction):
+            return function.call(self, arguments, line, column)
+        elif callable(function) and not isinstance(function, BytecodeFunction):
+            return function(*arguments)
+
+        if not isinstance(function, BytecodeFunction):
+            raise SikharTypeError(
+                f"Value of type '{type(function).__name__}' is not callable",
+                filename=self.filename,
+                line=line,
+                column=column,
+            )
+
+        if function.arity != len(arguments):
+            raise SikharTypeError(
+                f"Function '{function.name}' expects {function.arity} arguments, got {len(arguments)}",
+                filename=self.filename,
+                line=line,
+                column=column,
+            )
+
+        initial_frame_count = len(self.frames)
+        initial_stack_depth = len(self.stack)
+
+        self.push(function)
+        for arg in arguments:
+            self.push(arg)
+
+        base_slot = len(self.stack) - len(arguments)
+        fn_globals = function.globals if function.globals is not None else self.globals
+        new_frame = CallFrame(function, base_slot=base_slot, globals_dict=fn_globals)
+        self.frames.append(new_frame)
+
+        return self._execute(stop_at_frame_count=initial_frame_count, initial_stack_depth=initial_stack_depth)
+
+    def _execute(self, stop_at_frame_count: int = 0, initial_stack_depth: int = 0) -> Any:
         frames = self.frames
         stack = self.stack
         push = stack.append
         pop = stack.pop
 
-        while frames:
+        while len(frames) > stop_at_frame_count:
             frame = frames[-1]
             code = frame.function.chunk.code
             constants = frame.function.chunk.constants
 
             if frame.ip >= len(code):
                 frames.pop()
-                if not frames:
+                if len(frames) == stop_at_frame_count:
                     return None
                 continue
 
@@ -542,8 +581,15 @@ class VM:
                         arity=func_template.arity,
                         param_names=func_template.param_names,
                         chunk=func_template.chunk,
+                        captured_names=getattr(func_template, "captured_names", []),
                     )
-                    func_obj.globals = frame.globals
+                    captured = dict(frame.globals)
+                    if hasattr(func_template, "captured_names") and func_template.captured_names:
+                        for slot_i, var_name in enumerate(func_template.captured_names):
+                            stack_pos = frame.base_slot + slot_i
+                            if stack_pos < len(self.stack):
+                                captured[var_name] = self.stack[stack_pos]
+                    func_obj.globals = captured
                     self.push(func_obj)
 
                 elif op == OpCode.OP_CALL:
@@ -600,10 +646,10 @@ class VM:
                     finished_frame = self.frames.pop()
                     # Clean up local variables and callee function from stack
                     cleanup_to = finished_frame.base_slot - 1
-                    if cleanup_to >= 0:
+                    if cleanup_to >= initial_stack_depth:
                         del self.stack[cleanup_to:]
 
-                    if not self.frames:
+                    if len(self.frames) == stop_at_frame_count:
                         return ret_val
 
                     self.push(ret_val)
@@ -691,7 +737,7 @@ class VM:
             except Exception as exc:
                 # Check if caught by try-catch handler in call stack
                 handled = False
-                while self.frames:
+                while len(self.frames) > stop_at_frame_count:
                     cur_f = self.frames[-1]
                     if cur_f.try_stack:
                         catch_ip, saved_stack_depth = cur_f.try_stack.pop()

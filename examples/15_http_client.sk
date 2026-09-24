@@ -1,0 +1,53 @@
+# 15_http_client.sk
+# Demonstrates HTTP Client requests and HTTP Server interaction in Sikhar
+
+aayaat std.http
+aayaat std.json
+
+dekha "=== Sikhar std.http Client & Server Demo ==="
+
+# Define a local API server handler
+kaam api_handler(req) {
+    yadi req.path == "/api/status" {
+        farka {"status": 200, "body": '{"online": true, "version": "0.4.0"}'}
+    }
+    yadi req.path == "/api/greet" {
+        rakha name = "Guest"
+        yadi req.query["name"] != khali {
+            badla name = req.query["name"]
+        }
+        farka {"greeting": "Namaste, " + name + "!"}
+    }
+    yadi req.path == "/api/submit" {
+        rakha data = json.parse(req.body)
+        farka {"received": data, "saved": sacho}
+    }
+    farka {"status": 404, "body": "Not Found"}
+}
+
+# Start HTTP server on an ephemeral free port (port 0)
+rakha srv = http.server(0, api_handler)
+srv.start()
+rakha base_url = "http://127.0.0.1:" + srv.port
+dekha "Server running on " + base_url
+
+# 1. HTTP GET request
+rakha res1 = http.get(base_url + "/api/status")
+dekha "GET /api/status -> HTTP " + res1.status
+dekha "Response body: " + res1.body
+dekha "Response ok: " + res1.ok
+
+# 2. HTTP GET with query params using Nepali alias 'lyaau'
+rakha res2 = http.lyaau(base_url + "/api/greet?name=SikharDev")
+dekha "GET /api/greet -> HTTP " + res2.status
+dekha "Response body: " + res2.body
+
+# 3. HTTP POST request sending JSON payload
+rakha payload = '{"title": "Bug Report", "priority": "high"}'
+rakha res3 = http.post(base_url + "/api/submit", payload, {"Content-Type": "application/json"})
+dekha "POST /api/submit -> HTTP " + res3.status
+dekha "Response body: " + res3.body
+
+# Stop the server
+srv.stop()
+dekha "Server stopped successfully."

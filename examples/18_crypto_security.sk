@@ -1,0 +1,39 @@
+# 18_crypto_security.sk
+# Demonstrates Cryptographic Hashing, Base64, and HMAC in Sikhar (std.crypto)
+
+aayaat std.crypto
+
+dekha "=== Sikhar Cryptography & Security Demo ==="
+
+# 1. SHA-256 Hashing
+rakha message = "SecretSikharPayload"
+rakha sha256_hash = crypto.sha256(message)
+dekha "Input Message: " + message
+dekha "SHA-256 Hash:  " + sha256_hash
+
+# 2. SHA-512 & MD5
+rakha md5_hash = crypto.md5(message)
+dekha "MD5 Hash:      " + md5_hash
+
+rakha sha512_hash = crypto.sha512(message)
+dekha "SHA-512 Hash:  " + sha512_hash
+
+# 3. HMAC-SHA256 Signature (using Nepali alias 'gupta')
+rakha secret_key = "super_secure_key_123"
+rakha signature = crypto.gupta(secret_key, message)
+dekha "HMAC Signature:" + signature
+
+# 4. Base64 Encoding & Decoding
+rakha original = "Hello from Kathmandu, Nepal!"
+rakha encoded = crypto.base64_encode(original)
+dekha "Base64 Encoded:" + encoded
+
+rakha decoded = crypto.base64_decode(encoded)
+dekha "Base64 Decoded:" + decoded
+jaach decoded == original, "Base64 roundtrip must match original"
+
+# 5. Cryptographically Secure Random Token (using Nepali alias 'chinno')
+rakha token = crypto.chinno(16)
+dekha "Random Token:  " + token
+
+dekha "Cryptography demo completed successfully!"

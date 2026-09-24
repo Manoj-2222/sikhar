@@ -1,0 +1,77 @@
+# 16_web_server.sk
+# Demonstrates the Sikhar Web Framework (std.web) with routing, params, and middleware
+
+aayaat std.web
+aayaat std.http
+aayaat std.json
+
+dekha "=== Sikhar Web Framework (std.web) Demo ==="
+
+# Create Web application
+rakha app = web.app()
+
+# Middleware: Request logger & Auth protection
+app.use(kaam(req) {
+    # Block unauthorized access to /admin routes
+    yadi req.path == "/admin" {
+        farka {"status": 403, "body": "Forbidden: Admin access requires token"}
+    }
+    farka khali
+})
+
+# Route 1: Root welcome
+app.get("/", kaam(req) {
+    farka "Welcome to Sikhar Web Application!"
+})
+
+# Route 2: Dynamic route parameter (:username)
+app.get("/users/:username", kaam(req) {
+    rakha user = req.params["username"]
+    farka {
+        "user": user,
+        "message": "Namaste, " + user + "!",
+        "role": "Member"
+    }
+})
+
+# Route 3: REST API POST route creating items
+app.post("/api/items", kaam(req) {
+    rakha item_data = json.parse(req.body)
+    farka {
+        "status": 201,
+        "body": {
+            "created": sacho,
+            "item": item_data
+        }
+    }
+})
+
+# Start application server on free port (port 0)
+rakha port = app.start(0)
+rakha base = "http://127.0.0.1:" + port
+dekha "Web server running on " + base
+
+# Test 1: GET /
+rakha r1 = http.get(base + "/")
+dekha "GET / -> " + r1.status + " " + r1.body
+
+# Test 2: GET /users/manoj (route parameter)
+rakha r2 = http.get(base + "/users/manoj")
+dekha "GET /users/manoj -> " + r2.status + " " + r2.body
+
+# Test 3: POST /api/items (JSON creation)
+rakha item_payload = '{"name": "Mechanical Keyboard", "price": 85}'
+rakha r3 = http.post(base + "/api/items", item_payload, {"Content-Type": "application/json"})
+dekha "POST /api/items -> " + r3.status + " " + r3.body
+
+# Test 4: GET /admin (Blocked by middleware)
+rakha r4 = http.get(base + "/admin")
+dekha "GET /admin -> " + r4.status + " " + r4.body
+
+# Test 5: GET /unknown (Automatic 404 handler)
+rakha r5 = http.get(base + "/unknown-page")
+dekha "GET /unknown-page -> " + r5.status
+
+# Stop the server
+app.stop()
+dekha "Web server stopped successfully."

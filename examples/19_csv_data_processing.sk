@@ -1,0 +1,51 @@
+# 19_csv_data_processing.sk
+# Demonstrates CSV processing (std.csv) and Regular Expressions (std.regex)
+
+aayaat std.csv
+aayaat std.regex
+aayaat std.file
+
+dekha "=== Sikhar CSV & Data Processing Demo ==="
+
+# 1. Parse CSV string into list of maps
+rakha raw_csv = "id,name,role,salary\n1,Aarav,Architect,120000\n2,Pooja,Developer,95000\n3,Kiran,DevOps,88000"
+rakha records = csv.parse(raw_csv)
+
+dekha "Parsed CSV records: " + lamba(records)
+ko_lagi emp ma records {
+    dekha "  - #" + emp["id"] + " " + emp["name"] + " (" + emp["role"] + "): $" + emp["salary"]
+}
+
+# 2. Add an employee and stringify back to CSV
+rakha new_emp = {"id": "4", "name": "Bikash", "role": "QA", "salary": "78000"}
+jod_suchi(records, new_emp)
+
+rakha updated_csv = csv.stringify(records)
+dekha "\nUpdated CSV output:"
+dekha updated_csv
+
+# 3. File read and write
+rakha temp_file = "temp_employees.csv"
+csv.write(temp_file, records)
+dekha "CSV successfully written to: " + temp_file
+
+rakha reloaded = csv.read(temp_file)
+jaach lamba(reloaded) == 4, "Reloaded CSV should have 4 records"
+file.hatau(temp_file)
+dekha "Temporary CSV file cleaned up."
+
+# 4. Regular Expressions with std.regex
+dekha "\n--- std.regex Demo ---"
+rakha email = "contact@sikhar-lang.org"
+rakha is_email = regex.match("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", email)
+dekha "Is valid email: " + is_email
+jaach is_email == sacho, "Regex should validate email format"
+
+rakha log_line = "2026-09-24 [INFO] Request completed with status 200 in 45ms"
+rakha numbers_found = regex.find_all("[0-9]+", log_line)
+dekha "Numbers extracted from log: " + numbers_found
+
+rakha sanitized = regex.replace("[0-9]+", "X", "User ID 4589 ordered item 9921")
+dekha "Sanitized: " + sanitized
+
+dekha "CSV & Data Processing demo completed successfully!"

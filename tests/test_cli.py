@@ -13,7 +13,7 @@ class TestCLI(unittest.TestCase):
         try:
             exit_code = main(["version"])
             self.assertEqual(exit_code, 0)
-            self.assertIn("Sikhar v0.3.0", captured.getvalue())
+            self.assertIn("Sikhar v1.0.0", captured.getvalue())
         finally:
             sys.stdout = old_stdout
 
@@ -24,6 +24,8 @@ class TestCLI(unittest.TestCase):
             exit_code = main(["help"])
             self.assertEqual(exit_code, 0)
             self.assertIn("Commands:", captured.getvalue())
+            self.assertIn("build", captured.getvalue())
+            self.assertIn("serve", captured.getvalue())
             self.assertIn("compile", captured.getvalue())
             self.assertIn("dis", captured.getvalue())
         finally:
@@ -93,6 +95,26 @@ class TestCLI(unittest.TestCase):
         try:
             exit_code = main(["run", "non_existent_file_xyz.sk"])
             self.assertEqual(exit_code, 1)
+        finally:
+            sys.stderr = old_stderr
+
+    def test_serve_missing_target_returns_error_code(self):
+        old_stderr = sys.stderr
+        sys.stderr = captured = StringIO()
+        try:
+            exit_code = main(["serve", "non_existent_app_file_123.sk"])
+            self.assertEqual(exit_code, 1)
+            self.assertIn("does not exist", captured.getvalue())
+        finally:
+            sys.stderr = old_stderr
+
+    def test_serve_invalid_port(self):
+        old_stderr = sys.stderr
+        sys.stderr = captured = StringIO()
+        try:
+            exit_code = main(["serve", "--port", "invalid_port_str"])
+            self.assertEqual(exit_code, 1)
+            self.assertIn("Invalid port", captured.getvalue())
         finally:
             sys.stderr = old_stderr
 

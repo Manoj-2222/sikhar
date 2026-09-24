@@ -1,0 +1,40 @@
+# 20_concurrency_and_processes.sk
+# Demonstrates background asynchronous tasks (std.task) and child processes (std.process)
+
+aayaat std.task
+aayaat std.process
+aayaat std.text
+
+
+dekha "=== Sikhar Concurrency & Process Demo ==="
+
+# 1. Asynchronous background tasks with std.task
+kaam compute_heavy_work(num) {
+    task.sleep(0.05)
+    farka num * num
+}
+
+dekha "Spawning background worker task..."
+rakha handle = task.spawn(compute_heavy_work, [12])
+dekha "Task spawned with ID: " + handle["id"]
+
+# Main thread continues doing other work
+dekha "Main thread is active..."
+rakha res = task.wait(handle)
+dekha "Background task result: " + res
+jaach res == 144, "12 squared should be 144"
+
+# 2. Child process execution with std.process
+dekha "\n--- std.process Demo ---"
+rakha cmd_res = process.exec("echo HelloFromProcess")
+dekha "Command exit code: " + cmd_res["code"]
+dekha "Command stdout:    " + text.trim(cmd_res["stdout"])
+jaach cmd_res["ok"] == sacho, "Command should succeed"
+
+# 3. Environment variables
+process.set_env("SIKHAR_STAGE", "production-v1")
+rakha stage = process.env("SIKHAR_STAGE")
+dekha "Environment variable SIKHAR_STAGE: " + stage
+jaach stage == "production-v1", "Environment variable matches"
+
+dekha "Concurrency & processes demo completed successfully!"

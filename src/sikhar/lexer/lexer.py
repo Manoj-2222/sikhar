@@ -81,7 +81,8 @@ class Lexer:
 
             # Identifiers and keywords
             if ch.isalpha() or ch == '_' or ord(ch) > 127:
-                tokens.append(self._lex_identifier(start_line, start_col))
+                is_after_dot = bool(tokens and tokens[-1].type == TokenType.DOT)
+                tokens.append(self._lex_identifier(start_line, start_col, prev_is_dot=is_after_dot))
                 continue
 
             # Two-character operators
@@ -219,9 +220,9 @@ class Lexer:
         str_val = "".join(chars)
         # Length including quotes
         length = len(str_val) + 2
-        return Token(TokenType.TEXT, str_val, start_line, start_col, length, self.filename)
+        return Token(TokenType.TEXT, str_val, start_line, start_col, length, self.filename, quote_char=quote_char)
 
-    def _lex_identifier(self, start_line: int, start_col: int) -> Token:
+    def _lex_identifier(self, start_line: int, start_col: int, prev_is_dot: bool = False) -> Token:
         chars = []
         while self._peek() is not None:
             ch = self._peek()
@@ -232,6 +233,9 @@ class Lexer:
 
         word = "".join(chars)
         length = len(word)
+
+        if prev_is_dot:
+            return Token(TokenType.IDENTIFIER, word, start_line, start_col, length, self.filename)
 
         if word in KEYWORDS:
             tok_type = KEYWORDS[word]

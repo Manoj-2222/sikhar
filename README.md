@@ -10,9 +10,9 @@
  |____/|_|_|\_\_| |_|\__,_|_|    
 ```
 
-**Sikhar (`v0.3.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, and pinpoint diagnostics.
+**Sikhar (`v1.0.0`)** — A modern, expressive, and beginner-friendly programming language with Nepali-inspired keywords, clean grammar, pinpoint diagnostics, and production-ready toolchain.
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/Manoj-2222/sikhar)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Manoj-2222/sikhar)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 
@@ -23,7 +23,7 @@
 ## 🏔️ Core Identity
 
 * **Language Name**: Sikhar
-* **Current Version**: v0.3.0
+* **Current Version**: v1.0.0 (Production-Ready)
 * **Source Extension**: `.sk`
 * **Bytecode Extension**: `.skc`
 * **CLI Command**: `sk`
@@ -267,21 +267,76 @@ sk run hello.skc
 sk dis examples/01_hello.sk
 ```
 
+### 12. Web Framework, Networking & Databases (`std.web`, `std.http`, `std.json`, `std.db`)
+
+Build web applications, microservices, and persistent database-backed APIs with zero external dependencies:
+
+```sk
+aayaat std.web
+aayaat std.db
+aayaat std.json
+
+rakha app = web.app()
+rakha conn = db.connect(":memory:")
+conn.execute("CREATE TABLE visitors (id INTEGER PRIMARY KEY, name TEXT)")
+
+app.get("/", kaam(req) {
+    farka "Welcome to Sikhar Web Framework!"
+})
+
+app.get("/visitors/:name", kaam(req) {
+    rakha guest = req.params["name"]
+    conn.execute("INSERT INTO visitors (name) VALUES (?)", [guest])
+    farka {"status": 200, "body": {"greeting": "Namaste, " + guest + "!"}}
+})
+
+app.listen(8000)
+```
+
+Run with the CLI server:
+```bash
+sk serve app.sk --port 8000
+```
+
+### 13. Standalone Executable Bundler (`sk build`)
+
+Compile and bundle any Sikhar application into a self-contained, standalone executable archive (`.pyz` and companion `.bat` launcher on Windows) with zero third-party dependencies:
+
+```bash
+# Build standalone executable bundle
+sk build src/main.sk
+
+# Specify custom output path
+sk build src/main.sk -o dist/my_app.pyz
+
+# Run anywhere with Python without installing Sikhar:
+python dist/my_app.pyz
+# Or run the companion launcher on Windows:
+.\dist\my_app.bat
+```
+
 ---
 
 ## 🛠️ CLI Commands (`sk`)
 
 ```bash
-sk run [--vm] <file>  # Execute source (.sk) or compiled bytecode (.skc)
-sk compile <file.sk>  # Compile source to binary bytecode (.skc)
-sk dis <file>         # Disassemble source or bytecode to human-readable IR
-sk check <file.sk>    # Parse and validate syntax without execution
-sk format [file.sk]   # Deterministically format source code
-sk test               # Run test suite (Python + Native .sk tests)
-sk init <project>     # Scaffold a new project
-sk repl               # Start interactive REPL
-sk version            # Display current version
-sk help               # Show help message
+sk run [--vm] <file>       # Execute source (.sk) or compiled bytecode (.skc)
+sk build <file> [opt]      # Build standalone executable bundle (.pyz, .bat)
+sk serve [file|dir] [opt]  # Serve web app or static directory (--port, --host, --vm)
+sk bench <file.sk> [opt]   # Benchmark execution speed (AST vs VM comparison)
+sk compile <file.sk>       # Compile source to binary bytecode (.skc)
+sk dis <file>              # Disassemble source or bytecode to human-readable IR
+sk check <file.sk>         # Parse and validate syntax without execution
+sk format [file.sk]        # Deterministically format source code
+sk add <pkg> [ver]         # Add dependency to sikhar.toml
+sk install                 # Install dependencies from sikhar.toml
+sk publish                 # Package project for distribution
+sk lsp                     # Start JSON-RPC 2.0 Language Server on stdio
+sk test                    # Run test suite (Python + Native .sk tests)
+sk init <project>          # Scaffold a new project
+sk repl                    # Start interactive REPL
+sk version                 # Display current version
+sk help                    # Show help message
 ```
 
 ---
@@ -305,8 +360,7 @@ sikhar/
 │       │   ├── environment.py
 │       │   ├── values.py
 │       │   └── interpreter.py
-│       ├── vm/                # Stack-based Bytecode Virtual Machine (v0.3.0)
-│       │   ├── __init__.py
+│       ├── vm/                # Stack-based Bytecode Virtual Machine
 │       │   ├── opcodes.py     # Instruction set & OpCodes
 │       │   ├── chunk.py       # Instruction & constant chunk containers
 │       │   ├── compiler.py    # AST-to-Bytecode compiler & scope resolver
@@ -317,62 +371,36 @@ sikhar/
 │       │   ├── builtins.py
 │       │   └── module_loader.py
 │       ├── std/               # Standard Library
-│       │   ├── __init__.py
 │       │   ├── math.py        # std.math
 │       │   ├── text.py        # std.text
 │       │   ├── list.py        # std.list
 │       │   ├── map.py         # std.map
 │       │   ├── time.py        # std.time
 │       │   ├── file.py        # std.file
-│       │   └── system.py      # std.system
+│       │   ├── system.py      # std.system
+│       │   ├── json.py        # std.json
+│       │   ├── http.py        # std.http
+│       │   ├── web.py         # std.web framework
+│       │   ├── db.py          # std.db SQLite driver
+│       │   ├── crypto.py      # std.crypto
+│       │   ├── csv.py         # std.csv
+│       │   ├── regex.py       # std.regex
+│       │   ├── process.py     # std.process
+│       │   └── task.py        # std.task
+│       ├── lsp/               # Language Server Protocol (LSP)
+│       │   └── server.py
+│       ├── pkg/               # Package manager
+│       │   └── manager.py
+│       ├── bench/             # Benchmarking runner
+│       │   └── runner.py
+│       ├── builder/           # Standalone executable bundler
+│       │   └── bundle.py
 │       ├── errors/            # Native diagnostics & formatting
-│       │   ├── error_types.py
-│       │   └── reporter.py
 │       ├── formatter/         # Canonical AST formatter
-│       │   └── formatter.py
 │       └── cli/               # CLI commands and REPL
-│           └── main.py
-├── bin/
-│   ├── sk.bat                 # Windows CLI launcher
-│   └── sk                     # POSIX shell launcher
-├── benchmarks/                # Performance benchmarks
-│   └── run_benchmarks.py
-├── tests/                     # Test suite (Python + Native .sk)
-│   ├── test_lexer.py
-│   ├── test_parser.py
-│   ├── test_interpreter.py
-│   ├── test_functions.py
-│   ├── test_collections.py
-│   ├── test_errors.py
-│   ├── test_formatter.py
-│   ├── test_cli.py
-│   ├── test_modules.py
-│   ├── test_stdlib.py
-│   ├── test_interpolation.py
-│   ├── test_assert.py
-│   ├── test_compiler.py       # Compiler & disassembler unit tests
-│   ├── test_vm.py             # VM execution unit tests
-│   ├── test_skc.py            # .skc serialization tests
-│   └── test_v020_features.sk  # Native .sk test suite
-├── examples/                  # 13 runnable example scripts
-├── docs/                      # 16 detailed documentation guides
-│   ├── introduction.md
-│   ├── installation.md
-│   ├── syntax.md
-│   ├── variables.md
-│   ├── types.md
-│   ├── operators.md
-│   ├── conditions.md
-│   ├── loops.md
-│   ├── functions.md
-│   ├── collections.md
-│   ├── errors.md
-│   ├── modules.md
-│   ├── standard-library.md
-│   ├── bytecode-vm.md         # VM architecture & instruction set guide
-│   ├── cli.md
-│   └── roadmap.md
-├── vscode-extension/          # Official VS Code syntax highlighting
+├── tests/                     # Comprehensive test suite (120+ tests)
+├── examples/                  # 20 runnable example scripts
+├── docs/                      # 23 documentation guides & specifications
 ├── pyproject.toml
 ├── sikhar.toml
 ├── LICENSE
@@ -395,28 +423,34 @@ python -m unittest discover -s tests -p "test_*.py"
 
 Result:
 ```text
-Ran 87 tests in 0.029s
+Ran 123 tests in 2.2s
 OK
 === Running Sikhar Python Test Suite ===
 
 === Running Native Sikhar (.sk) Test Suite ===
 Testing tests\test_v020_features.sk ... PASSED
+Testing tests\test_v040_features.sk ... PASSED
+Testing tests\test_v100_features.sk ... PASSED
 ```
 
 ---
 
-## 🗺️ Roadmap Ahead
+## 🗺️ Roadmap & Release Milestones
 
 * [x] **v0.1.0**: Core Language Foundation (Lexer, Parser, Interpreter, REPL, CLI, Formatter).
 * [x] **v0.2.0**: Modules (`aayaat`, `pathaau`), Standard Library (`std.*`), File I/O, String Interpolation, Assertions (`jaach`).
 * [x] **v0.3.0**: Bytecode Compiler & Virtual Machine (`.skc`), Disassembler (`sk dis`).
-* [ ] **v0.4.0**: Networking & Sikhar Web framework.
-* [ ] **v0.5.0**: Language Server Protocol (LSP) & Package Manager.
-* [ ] **v1.0.0**: Production-grade Compiler (Native/Wasm) and standardized ecosystem.
+* [x] **v0.4.0**: Networking & Sikhar Web framework (`std.web`, `std.http`, `std.json`, `std.db`, `sk serve`).
+* [x] **v0.5.0**: Developer Tooling, Language Server Protocol (`sk lsp`), Benchmarking (`sk bench`).
+* [x] **v0.6.0**: Concurrency (`std.task`) & System Subprocesses (`std.process`).
+* [x] **v0.7.0**: Cryptography & Security (`std.crypto`).
+* [x] **v0.8.0**: Package Manager & Manifests (`sikhar.toml`, `sk add`, `sk install`, `sk publish`).
+* [x] **v0.9.0**: Structured Data & Text Processing (`std.csv`, `std.regex`).
+* [x] **v1.0.0**: **Production-Ready Sikhar** (Unified standard, standalone bundler `sk build`, dual-engine parity, 120+ tests).
+* [ ] **Post-1.0**: LLVM / WebAssembly AOT backend and Interactive Debugger (DAP).
 
 ---
 
 ## 📜 License
 
 Licensed under the [MIT License](LICENSE).
-

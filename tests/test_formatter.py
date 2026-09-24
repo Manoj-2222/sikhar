@@ -35,6 +35,12 @@ class TestFormatter(unittest.TestCase):
         second_pass = self.formatter.format_code(initial)
         self.assertEqual(second_pass, initial)
 
+    def test_format_function_expression(self):
+        messy = 'rakha fn = kaam(x,y){farka x+y}'
+        formatted = self.formatter.format_code(messy)
+        expected = 'rakha fn = kaam(x, y) {\n    farka x + y\n}\n'
+        self.assertEqual(formatted, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

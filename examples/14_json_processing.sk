@@ -1,0 +1,42 @@
+# 14_json_processing.sk
+# Demonstrates std.json serialization, deserialization, and validation in Sikhar
+
+aayaat std.json
+
+dekha "=== Sikhar std.json Processing Demo ==="
+
+# 1. Parsing JSON strings
+rakha user_raw = '{"name": "Manoj", "role": "Developer", "level": 4, "active": true}'
+rakha user = json.parse(user_raw)
+
+dekha "User name: " + user["name"]
+dekha "User role: " + user["role"]
+dekha "User level: " + user["level"]
+dekha "Is active: " + user["active"]
+
+# 2. Stringifying Sikhar maps and lists to JSON
+rakha project = {
+    "name": "Sikhar",
+    "version": "0.4.0",
+    "features": ["Web Framework", "HTTP Client/Server", "JSON Parser", "SQLite Driver"]
+}
+
+rakha json_compact = json.stringify(project)
+dekha "Serialized JSON (compact):"
+dekha json_compact
+
+rakha json_pretty = json.stringify(project, 2)
+dekha "Serialized JSON (indented):"
+dekha json_pretty
+
+# 3. Validating JSON syntax
+rakha valid_check = json.valid(json_compact)
+dekha "Is valid JSON: " + valid_check
+
+rakha invalid_check = json.valid("{ invalid json ...")
+dekha "Is invalid JSON valid: " + invalid_check
+
+# 4. Nepali keyword aliases
+rakha doc = json.padh('{"shahar": "Kathmandu", "jilla": "Kathmandu"}')
+dekha "Nepali padh alias: " + doc["shahar"]
+dekha "Nepali rupantar alias: " + json.rupantar(doc)

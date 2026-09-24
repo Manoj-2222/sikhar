@@ -3,7 +3,7 @@ Sikhar Token Representation
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 from .token_type import TokenType
 
 
@@ -15,6 +15,7 @@ class Token:
     column: int
     length: int = 1
     filename: str = "<stdin>"
+    quote_char: Optional[str] = None
 
     def __repr__(self) -> str:
         return f"Token({self.type.name}, {self.value!r}, L{self.line}:C{self.column})"

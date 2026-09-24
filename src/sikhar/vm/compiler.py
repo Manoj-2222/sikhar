@@ -19,6 +19,7 @@ from ..parser.ast_nodes import (
     BreakStatement,
     ContinueStatement,
     FunctionDeclaration,
+    FunctionExpression,
     ReturnStatement,
     TryStatement,
     ThrowStatement,
@@ -411,11 +412,13 @@ class Compiler:
         func_compiler.emit_byte(OpCode.OP_NIL, stmt.line, stmt.column)
         func_compiler.emit_byte(OpCode.OP_RETURN, stmt.line, stmt.column)
 
+        enclosing_locals = [loc.name for loc in self.locals if not loc.name.startswith("(")]
         func_obj = BytecodeFunction(
             name=stmt.name,
             arity=len(stmt.parameters),
             param_names=list(stmt.parameters),
             chunk=func_compiler.chunk,
+            captured_names=enclosing_locals,
         )
 
         const_idx = self.chunk.add_constant(func_obj)
@@ -508,6 +511,8 @@ class Compiler:
             self._compile_member(expr)
         elif isinstance(expr, ImportExpression):
             self._compile_import(expr)
+        elif isinstance(expr, FunctionExpression):
+            self._compile_function_expr(expr)
         else:
             raise SikharCompileError(
                 f"Unknown expression type: {type(expr).__name__}",
@@ -525,12 +530,39 @@ class Compiler:
             else:
                 self.emit_byte(OpCode.OP_FALSE, expr.line, expr.column)
         elif isinstance(expr.value, str):
-            if "{" in expr.value or "\0" in expr.value:
+            if getattr(expr, "literal_type", "text") != "raw_text" and ("{" in expr.value or "\0" in expr.value):
                 self._compile_interpolated_string(expr.value, expr.line, expr.column)
             else:
                 self.emit_constant(expr.value, expr.line, expr.column)
         else:
             self.emit_constant(expr.value, expr.line, expr.column)
+
+    def _compile_function_expr(self, expr: FunctionExpression) -> None:
+        fn_name = expr.name or "(anonymous)"
+        func_compiler = Compiler(filename=self.filename, parent=self, function_name=fn_name)
+        func_compiler.scope_depth = 1
+
+        for param in expr.parameters:
+            func_compiler.locals.append(Local(param, depth=1, is_const=False))
+
+        for s in expr.body.statements:
+            func_compiler.compile_statement(s)
+
+        # Implicit return nil at end of function
+        func_compiler.emit_byte(OpCode.OP_NIL, expr.line, expr.column)
+        func_compiler.emit_byte(OpCode.OP_RETURN, expr.line, expr.column)
+
+        enclosing_locals = [loc.name for loc in self.locals if not loc.name.startswith("(")]
+        func_obj = BytecodeFunction(
+            name=fn_name,
+            arity=len(expr.parameters),
+            param_names=list(expr.parameters),
+            chunk=func_compiler.chunk,
+            captured_names=enclosing_locals,
+        )
+
+        const_idx = self.chunk.add_constant(func_obj)
+        self.emit_op_short(OpCode.OP_MAKE_FUNCTION, const_idx, expr.line, expr.column)
 
     def _compile_interpolated_string(self, text: str, line: int, col: int) -> None:
         parts_count = 0
@@ -562,13 +594,26 @@ class Compiler:
                     i += 1
                 else:
                     expr_text = text[start:j - 1].strip()
+                    parsed = None
                     if expr_text:
-                        from ..lexer.lexer import Lexer
-                        from ..parser.parser import Parser
+                        try:
+                            from ..lexer.lexer import Lexer
+                            from ..parser.parser import Parser
 
-                        tokens = Lexer(expr_text, self.filename).tokenize()
-                        parsed = Parser(tokens, expr_text, self.filename)._parse_expression()
+                            tokens = Lexer(expr_text, self.filename).tokenize()
+                            p = Parser(tokens, expr_text, self.filename)
+                            cand = p._parse_expression()
+                            p._skip_newlines()
+                            if p._is_at_end():
+                                parsed = cand
+                        except Exception:
+                            parsed = None
+
+                    if parsed is not None:
                         self.compile_expression(parsed)
+                        parts_count += 1
+                    else:
+                        self.emit_constant(text[i:j], line, col)
                         parts_count += 1
                     i = j
             else:

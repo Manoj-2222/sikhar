@@ -24,18 +24,26 @@ def _constant_to_serializable(val: Any) -> Any:
             val.chunk.code,
             [_constant_to_serializable(c) for c in val.chunk.constants],
             val.chunk.lines,
+            getattr(val, "captured_names", []),
         )
     return val
 
 
 def _serializable_to_constant(val: Any, filename: str = "<stdin>") -> Any:
-    if isinstance(val, tuple) and len(val) == 7 and val[0] == "__sk_fn__":
-        _, name, arity, param_names, code, constants, lines = val
+    if isinstance(val, tuple) and val and val[0] == "__sk_fn__":
+        captured_names = list(val[7]) if len(val) >= 8 else []
+        _, name, arity, param_names, code, constants, lines = val[:7]
         inner_chunk = Chunk(filename)
         inner_chunk.code = list(code)
         inner_chunk.constants = [_serializable_to_constant(c, filename) for c in constants]
         inner_chunk.lines = list(lines)
-        return BytecodeFunction(name=name, arity=arity, param_names=list(param_names), chunk=inner_chunk)
+        return BytecodeFunction(
+            name=name,
+            arity=arity,
+            param_names=list(param_names),
+            chunk=inner_chunk,
+            captured_names=captured_names,
+        )
     return val
 
 

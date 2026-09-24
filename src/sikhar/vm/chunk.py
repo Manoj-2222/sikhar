@@ -52,7 +52,10 @@ class Chunk:
         return (1, 1)
 
 
-class BytecodeFunction:
+from ..interpreter.values import SikharCallable
+
+
+class BytecodeFunction(SikharCallable):
     """Compiled function stored as a constant in a chunk."""
 
     def __init__(
@@ -61,12 +64,27 @@ class BytecodeFunction:
         arity: int,
         param_names: Optional[List[str]] = None,
         chunk: Optional[Chunk] = None,
+        captured_names: Optional[List[str]] = None,
     ):
         self.name: str = name
-        self.arity: int = arity
+        self._arity: int = arity
         self.param_names: List[str] = param_names or []
         self.chunk: Chunk = chunk if chunk is not None else Chunk()
         self.globals: Optional[dict[str, Any]] = None
+        self.captured_names: List[str] = list(captured_names) if captured_names else []
+
+    @property
+    def arity(self) -> int:
+        return self._arity
+
+    def call(self, interpreter_or_vm: Any, arguments: List[Any], line: int = 1, column: int = 1) -> Any:
+        if hasattr(interpreter_or_vm, "call_function"):
+            return interpreter_or_vm.call_function(self, arguments, line=line, column=column)
+        from .vm import VM
+        vm = VM(filename=getattr(interpreter_or_vm, "filename", "<bytecode>"))
+        if hasattr(interpreter_or_vm, "globals") and isinstance(interpreter_or_vm.globals, dict):
+            vm.globals.update(interpreter_or_vm.globals)
+        return vm.call_function(self, arguments, line=line, column=column)
 
     def __repr__(self) -> str:
         return f"<kaam {self.name} (bytecode, arity={self.arity})>"

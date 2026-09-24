@@ -1,0 +1,85 @@
+# test_v100_features.sk
+# Comprehensive test suite for Sikhar v1.0.0 features
+
+aayaat std.crypto
+aayaat std.csv
+aayaat std.regex
+aayaat std.process
+aayaat std.task
+aayaat std.text
+
+dekha "=== Testing Sikhar v1.0.0 Features ==="
+
+# 1. std.crypto
+dekha "Testing std.crypto..."
+rakha hash256 = crypto.sha256("test")
+jaach hash256 == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "SHA-256 hash matches"
+
+rakha hash_md5 = crypto.md5("test")
+jaach hash_md5 == "098f6bcd4621d373cade4e832627b4f6", "MD5 hash matches"
+
+rakha b64 = crypto.base64_encode("Sikhar v1.0")
+rakha orig = crypto.base64_decode(b64)
+jaach orig == "Sikhar v1.0", "Base64 roundtrip matches"
+
+rakha tok = crypto.chinno(16)
+jaach lamba(tok) > 0, "Token generated"
+rakha hex_b = crypto.random_bytes(4)
+jaach lamba(hex_b) == 8, "Random 4 bytes is 8 hex digits"
+
+# 2. std.csv
+dekha "Testing std.csv..."
+rakha csv_raw = "id,name,val\n1,one,100\n2,two,200"
+rakha parsed = csv.parse(csv_raw, sacho)
+jaach lamba(parsed) == 2, "Parsed 2 rows"
+jaach parsed[0]["name"] == "one", "First row name matches"
+jaach parsed[1]["val"] == "200", "Second row val matches"
+
+rakha str_csv = csv.stringify(parsed, ";")
+rakha re_parsed = csv.parse(str_csv, sacho, ";")
+jaach re_parsed[0]["name"] == "one", "Semicolon delimited CSV parsed"
+
+# 3. std.regex
+dekha "Testing std.regex..."
+jaach regex.match("^v1\\.", "v1.0.0"), "Regex match should be true"
+jaach regex.match("^v2\\.", "v1.0.0") == jutho, "Regex match should be false"
+
+rakha all_nums = regex.find_all("\\d+", "abc 123 def 456")
+jaach lamba(all_nums) == 2, "Found 2 numbers"
+jaach all_nums[0] == "123", "First number is 123"
+jaach all_nums[1] == "456", "Second number is 456"
+
+rakha replaced = regex.replace("[0-9]", "#", "user123")
+jaach replaced == "user###", "Regex replaced digits"
+
+rakha splits = regex.split("\\|", "alpha|beta|gamma")
+jaach lamba(splits) == 3, "Split into 3 elements"
+jaach splits[1] == "beta", "Second split element matches"
+
+# 4. std.process
+dekha "Testing std.process..."
+process.set_env("TEST_V1_KEY", "VERIFIED")
+jaach process.env("TEST_V1_KEY") == "VERIFIED", "Process env set and read matches"
+
+rakha cmd = process.exec("echo test_v1")
+jaach cmd["ok"] == sacho, "Command status is ok"
+jaach cmd["code"] == 0, "Command exit code is 0"
+jaach text.trim(cmd["stdout"]) == "test_v1", "Command stdout matches"
+
+# 5. std.task
+dekha "Testing std.task..."
+kaam calculate_square(x) {
+    task.sleep(0.01)
+    farka x * x
+}
+
+rakha h1 = task.spawn(calculate_square, [9])
+rakha h2 = task.spawn(calculate_square, [11])
+
+rakha ans1 = task.wait(h1)
+rakha ans2 = task.wait(h2)
+
+jaach ans1 == 81, "Task 1 returned 81"
+jaach ans2 == 121, "Task 2 returned 121"
+
+dekha "All Sikhar v1.0.0 native assertions passed successfully!"

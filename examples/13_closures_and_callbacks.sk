@@ -1,0 +1,55 @@
+# 13_closures_and_callbacks.sk
+# Demonstrates first-class anonymous functions, closures, and callbacks in Sikhar
+
+dekha "=== Sikhar Closures & Callbacks Demo ==="
+
+# 1. Anonymous function expression assigned to a variable
+rakha square = kaam(n) {
+    farka n * n
+}
+dekha "Square of 6: " + square(6)
+
+# 2. Higher-order function taking a callback function
+kaam map_list(items, transform_fn) {
+    rakha result = []
+    ko_lagi item ma items {
+        jod_suchi(result, transform_fn(item))
+    }
+    farka result
+}
+
+rakha numbers = [1, 2, 3, 4, 5]
+rakha doubled = map_list(numbers, kaam(x) {
+    farka x * 2
+})
+dekha "Original: " + numbers
+dekha "Doubled:  " + doubled
+
+# 3. Higher-order function with condition / filter
+kaam filter_list(items, predicate_fn) {
+    rakha result = []
+    ko_lagi item ma items {
+        yadi predicate_fn(item) {
+            jod_suchi(result, item)
+        }
+    }
+    farka result
+}
+
+rakha evens = filter_list(numbers, kaam(x) {
+    farka x % 2 == 0
+})
+dekha "Evens:    " + evens
+
+# 4. Function returning a closure capturing lexical scope
+kaam make_multiplier(factor) {
+    farka kaam(val) {
+        farka val * factor
+    }
+}
+
+rakha triple = make_multiplier(3)
+dekha "Triple 7: " + triple(7)
+dekha "Triple 9: " + triple(9)
+
+dekha "Closures and callbacks demo completed successfully!"

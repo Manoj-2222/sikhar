@@ -98,6 +98,13 @@ class Block(Statement):
 
 
 @dataclass
+class FunctionExpression(Expression):
+    name: Optional[str] = None
+    parameters: List[str] = field(default_factory=list)
+    body: Block = field(default_factory=Block)
+
+
+@dataclass
 class VariableDeclaration(Statement):
     name: str = ""
     type_annotation: Optional[str] = None

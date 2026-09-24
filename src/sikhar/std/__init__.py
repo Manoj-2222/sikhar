@@ -11,6 +11,15 @@ from .map import create_map_module
 from .time import create_time_module
 from .file import create_file_module
 from .system import create_system_module
+from .json import create_json_module
+from .http import create_http_module
+from .web import create_web_module
+from .db import create_db_module
+from .crypto import create_crypto_module
+from .csv import create_csv_module
+from .regex import create_regex_module
+from .process import create_process_module
+from .task import create_task_module
 
 _STD_CACHE: Dict[str, SikharModule] = {}
 
@@ -40,6 +49,24 @@ def get_std_module(name: str) -> Optional[SikharModule]:
         module = create_file_module()
     elif clean_name == "system":
         module = create_system_module()
+    elif clean_name == "json":
+        module = create_json_module()
+    elif clean_name == "http":
+        module = create_http_module()
+    elif clean_name == "web":
+        module = create_web_module()
+    elif clean_name == "db":
+        module = create_db_module()
+    elif clean_name == "crypto":
+        module = create_crypto_module()
+    elif clean_name == "csv":
+        module = create_csv_module()
+    elif clean_name == "regex":
+        module = create_regex_module()
+    elif clean_name == "process":
+        module = create_process_module()
+    elif clean_name == "task":
+        module = create_task_module()
     elif clean_name in ("std", ""):
         # Aggregated root std module
         root_exports = {
@@ -50,6 +77,15 @@ def get_std_module(name: str) -> Optional[SikharModule]:
             "time": get_std_module("time"),
             "file": get_std_module("file"),
             "system": get_std_module("system"),
+            "json": get_std_module("json"),
+            "http": get_std_module("http"),
+            "web": get_std_module("web"),
+            "db": get_std_module("db"),
+            "crypto": get_std_module("crypto"),
+            "csv": get_std_module("csv"),
+            "regex": get_std_module("regex"),
+            "process": get_std_module("process"),
+            "task": get_std_module("task"),
         }
         module = SikharModule("std", root_exports)
 

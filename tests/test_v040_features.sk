@@ -1,0 +1,81 @@
+# Native Sikhar Test Suite for v0.4.0 Features (Web Framework & Networking)
+aayaat std.json
+aayaat std.http
+aayaat std.web
+aayaat std.db
+
+# ==========================================
+# 1. std.json Testing
+# ==========================================
+rakha sample_json = '{"project": "Sikhar", "version": "0.4.0", "active": true, "count": 10}'
+jaach json.valid(sample_json) == sacho, "Valid JSON should be detected"
+jaach json.valid("invalid { json") == jutho, "Invalid JSON should be rejected"
+
+rakha data = json.parse(sample_json)
+jaach data["project"] == "Sikhar", "JSON project name should match"
+jaach data["version"] == "0.4.0", "JSON version should match"
+jaach data["active"] == sacho, "JSON boolean should match"
+jaach data["count"] == 10, "JSON number should match"
+
+rakha re_encoded = json.stringify(data)
+jaach json.valid(re_encoded) == sacho, "Re-encoded JSON must be valid"
+
+# Nepali aliases
+rakha doc = json.padh('{"city": "Pokhara"}')
+jaach doc["city"] == "Pokhara", "json.padh alias works"
+rakha doc_str = json.rupantar(doc)
+jaach json.sacho(doc_str) == sacho, "json.sacho alias works"
+
+
+# ==========================================
+# 2. std.db (SQLite) Testing
+# ==========================================
+rakha conn = db.connect(":memory:")
+conn.execute("CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price REAL)")
+conn.execute("INSERT INTO products (name, price) VALUES (?, ?)", ["Laptop", 1200.50])
+conn.execute("INSERT INTO products (name, price) VALUES (?, ?)", ["Mouse", 25.00])
+
+rakha products = conn.query("SELECT * FROM products ORDER BY id ASC")
+jaach lamba(products) == 2, "Should retrieve 2 products"
+jaach products[0]["name"] == "Laptop", "First product name matches"
+jaach products[1]["name"] == "Mouse", "Second product name matches"
+
+rakha mouse = conn.query_one("SELECT * FROM products WHERE name = ?", ["Mouse"])
+jaach mouse["price"] == 25.0, "Mouse price matches"
+
+conn.close()
+
+
+# ==========================================
+# 3. std.web Framework Testing
+# ==========================================
+rakha app = web.app()
+
+app.get("/api/greet/:name", kaam(req) {
+    rakha guest = req.params["name"]
+    farka {"greeting": "Namaste, " + guest + "!"}
+})
+
+app.post("/api/echo", kaam(req) {
+    farka {"status": 201, "body": req.body}
+})
+
+# In-memory request dispatch using app.handle
+rakha req1 = {"method": "GET", "path": "/api/greet/Sikhar"}
+rakha res1 = app.handle(req1)
+jaach res1.status == 200, "Greeting route status should be 200"
+
+rakha res1_data = json.parse(res1.body)
+jaach res1_data["greeting"] == "Namaste, Sikhar!", "Greeting response matches"
+
+rakha req2 = {"method": "POST", "path": "/api/echo", "body": "Ping Body"}
+rakha res2 = app.handle(req2)
+jaach res2.status == 201, "Echo route status should be 201"
+jaach res2.body == "Ping Body", "Echo body matches"
+
+# Route not found
+rakha req_404 = {"method": "GET", "path": "/unknown/route"}
+rakha res_404 = app.handle(req_404)
+jaach res_404.status == 404, "Unknown route should return 404"
+
+dekha "Native v0.4.0 test suite passed successfully!"

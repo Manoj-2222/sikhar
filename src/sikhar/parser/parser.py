@@ -22,6 +22,7 @@ from .ast_nodes import (
     BreakStatement,
     ContinueStatement,
     FunctionDeclaration,
+    FunctionExpression,
     ReturnStatement,
     TryStatement,
     ThrowStatement,
@@ -486,13 +487,21 @@ class Parser:
                 self._consume(TokenType.RBRACKET, "Expected ']' after index")
                 expr = IndexExpression(line=expr.line, column=expr.column, target=expr, index=idx)
             elif self._match(TokenType.DOT):
-                # Member access e.g. math.sqrt or file.hatau
+                # Member access e.g. math.sqrt or file.hatau or json.sacho
                 curr = self._current()
                 if curr.type == TokenType.IDENTIFIER or curr.type in KEYWORDS.values():
                     prop_tok = self._advance()
+                    prop_name = str(prop_tok.value)
+                elif curr.type == TokenType.BOOLEAN:
+                    prop_tok = self._advance()
+                    prop_name = "sacho" if prop_tok.value else "jutho"
+                elif curr.type == TokenType.NULL:
+                    prop_tok = self._advance()
+                    prop_name = "khali"
                 else:
                     prop_tok = self._consume(TokenType.IDENTIFIER, "Expected property name after '.'")
-                expr = MemberExpression(line=expr.line, column=expr.column, target=expr, property_name=str(prop_tok.value))
+                    prop_name = str(prop_tok.value)
+                expr = MemberExpression(line=expr.line, column=expr.column, target=expr, property_name=prop_name)
             else:
                 break
 
@@ -508,13 +517,37 @@ class Parser:
             return Literal(line=curr.line, column=curr.column, value=curr.value, literal_type="decimal")
 
         if self._match(TokenType.TEXT):
-            return Literal(line=curr.line, column=curr.column, value=curr.value, literal_type="text")
+            lit_type = "raw_text" if getattr(curr, "quote_char", '"') == "'" else "text"
+            return Literal(line=curr.line, column=curr.column, value=curr.value, literal_type=lit_type)
 
         if self._match(TokenType.BOOLEAN):
             return Literal(line=curr.line, column=curr.column, value=curr.value, literal_type="boolean")
 
         if self._match(TokenType.NULL):
             return Literal(line=curr.line, column=curr.column, value=None, literal_type="null")
+
+        if self._match(TokenType.KAAM):
+            # Anonymous function / lambda closure expression: kaam(x, y) { ... } or kaam name(x, y) { ... }
+            func_name = None
+            if self._check(TokenType.IDENTIFIER):
+                func_name = str(self._advance().value)
+            self._consume(TokenType.LPAREN, "Expected '(' after 'kaam'")
+            params: List[str] = []
+            if not self._check(TokenType.RPAREN):
+                param_tok = self._consume(TokenType.IDENTIFIER, "Expected parameter name")
+                params.append(str(param_tok.value))
+                while self._match(TokenType.COMMA):
+                    param_tok = self._consume(TokenType.IDENTIFIER, "Expected parameter name after ','")
+                    params.append(str(param_tok.value))
+            self._consume(TokenType.RPAREN, "Expected ')' after parameters")
+            body = self._parse_block()
+            return FunctionExpression(
+                line=curr.line,
+                column=curr.column,
+                name=func_name,
+                parameters=params,
+                body=body,
+            )
 
         if self._match(TokenType.IDENTIFIER):
             return Identifier(line=curr.line, column=curr.column, name=str(curr.value))
